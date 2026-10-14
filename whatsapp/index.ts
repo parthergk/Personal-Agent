@@ -114,8 +114,8 @@ async function connect(): Promise<void> {
           }
         } else {
           await sock.sendMessage(chatId, {
-            text: response.message,
-        });
+            text: response.message
+          });
       }
     } catch (error) {
       console.error("Message processing error:", error);

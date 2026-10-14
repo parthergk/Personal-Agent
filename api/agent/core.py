@@ -42,10 +42,14 @@ def process_message(message: IncomingMessage) -> str:
         )
 
         assistant_msg = response.choices[0].message
-        messages.append(assistant_msg)
+        messages.append(assistant_msg) 
         print("\n\nassistant msg", assistant_msg)
         if not assistant_msg.tool_calls:
-            return assistant_msg.content or ""
+            return {
+                "type": "text",
+                "message": assistant_msg.content or "",
+                "path": None
+            }
 
         for tool_call in assistant_msg.tool_calls:
             name = tool_call.function.name
