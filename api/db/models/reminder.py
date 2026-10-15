@@ -1,14 +1,17 @@
-from sqlalchemy import Column, String, Integer, Boolean, DateTime
-from db.reminder_db import Base
 from datetime import datetime
+from sqlalchemy import Column, String, Integer, DateTime
+from db.reminder_db import Base
+
 
 class Reminder(Base):
     __tablename__ = "reminders"
 
     id = Column(Integer, primary_key=True, index=True)
-    task = Column(String, index=True)
-    remind_at = Column(DateTime, index=True)
-    is_completed = Column(Boolean, default=False, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    message = Column(String, nullable=False)
+    due_at = Column(DateTime, nullable=False, index=True)
+    timezone = Column(String, nullable=False, default="Asia/Kolkata")
+    status = Column(String, default="pending", nullable=False, index=True)
+    attempts = Column(Integer, default=0, nullable=False)
+    locked_until = Column(DateTime, nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    sent_at = Column(DateTime, nullable=True)
