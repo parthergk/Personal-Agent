@@ -10,7 +10,7 @@ from sqlalchemy import or_, and_
 # Ensure parent directory is in sys.path for direct script execution
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from db.reminder_db import SessionLocal
+from db.session import SessionLocal
 from db.models.reminder import Reminder
 
 logger = logging.getLogger("reminder_scheduler")

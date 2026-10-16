@@ -5,10 +5,11 @@ from qdrant_client.models import Distance, VectorParams
 
 load_dotenv()
 
+QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("API_KEY")
 
 qdrant_client = QdrantClient(
-    url="https://30cc1a50-8f9f-487c-9199-47283e4785df.eu-west-1-0.aws.cloud.qdrant.io",
+    url=QDRANT_URL,
     api_key=QDRANT_API_KEY,
     cloud_inference=True
 )

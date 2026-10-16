@@ -26,6 +26,7 @@ Thumbs.db
 # WhatsApp Session / Baileys Authentication Data
 *auth*
 *session*
+!api/db/session.py
 baileys_auth_info/
 session/
 auth_info_multi_device/

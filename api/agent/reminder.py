@@ -4,7 +4,7 @@ try:
 except ImportError:
     ZoneInfo = None
 
-from db.reminder_db import SessionLocal, Base, engine
+from db.session import SessionLocal, Base, engine
 from db.models.reminder import Reminder
 
 # Create tables if they do not exist
