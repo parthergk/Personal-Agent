@@ -2,7 +2,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from agent import process_message, IncomingMessage
@@ -64,3 +64,24 @@ async def verify_webhook(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Verification token mismatch",
     )
+
+
+@app.post("/webhook")
+async def receive_webhook(request: Request):
+    try:
+        data = await request.json()
+    except Exception:
+        data = await request.body()
+
+    print("\n[WhatsApp Webhook Received]:", data)
+
+    # Print individual messages if present in the payload
+    if isinstance(data, dict):
+        for entry in data.get("entry", []):
+            for change in entry.get("changes", []):
+                value = change.get("value", {})
+                for message in value.get("messages", []):
+                    print("\n[WhatsApp Message]:", message)
+
+    return Response(content="EVENT_RECEIVED", status_code=status.HTTP_200_OK)
+
