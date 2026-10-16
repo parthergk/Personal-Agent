@@ -70,16 +70,16 @@ TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "task": {
+                    "message": {
                         "type": "string",
                         "description": "The description of the task to be reminded of."
                     },
-                    "remind_at": {
+                    "due_at": {
                         "type": "string",
                         "description": "The date and time when the reminder should trigger, formatted as an ISO 8601 string (YYYY-MM-DDTHH:MM:SS), resolved relative to the current local time."
                     }
                 },
-                "required": ["task", "remind_at"]
+                "required": ["message", "due_at"]
             }
         }
     }

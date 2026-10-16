@@ -68,8 +68,8 @@ def process_message(message: IncomingMessage) -> str:
                 )
             elif name == "create_reminder":
                 result = create_reminder(
-                    task=args.get("task"),
-                    remind_at=args.get("remind_at")
+                    message=args.get("message"),
+                    due_at=args.get("due_at")
                 )
             else:
                 result = f"Unknown tool: {name}"
