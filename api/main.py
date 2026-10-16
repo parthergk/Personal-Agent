@@ -1,9 +1,17 @@
+import logging
+import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Query, status
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from agent import process_message, IncomingMessage
 from processors import preprocess_message
 from services.reminder_scheduler import start_scheduler, stop_scheduler
+
+load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -32,3 +40,27 @@ async def chat(request: ChatRequest):
     return {
         "response": response
     }
+
+
+@app.get("/webhook")
+async def verify_webhook(
+    mode: str | None = Query(None, alias="hub.mode"),
+    token: str | None = Query(None, alias="hub.verify_token"),
+    challenge: str | None = Query(None, alias="hub.challenge"),
+):
+    """WhatsApp Business API Webhook verification (Meta Cloud API).
+
+    Meta sends a GET request with hub.mode, hub.verify_token, and hub.challenge
+    to verify endpoint ownership.
+    """
+    verify_token = os.getenv("WHATSAPP_VERIFY_TOKEN")
+
+    if mode == "subscribe" and verify_token and token == verify_token:
+        logger.info("WhatsApp webhook verified successfully.")
+        return PlainTextResponse(content=challenge or "", status_code=status.HTTP_200_OK)
+
+    logger.warning("WhatsApp webhook verification failed: mode=%s, token_match=%s", mode, token == verify_token)
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Verification token mismatch",
+    )
