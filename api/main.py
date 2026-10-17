@@ -99,16 +99,48 @@ async def receive_webhook(request: Request):
                     response = process_message(preprocess_response)
                     print("\n[Agent Response]:", response)
 
-                    # 4. Send response back to the user on WhatsApp
-                    reply_text = None
-                    if isinstance(response, dict):
-                        reply_text = response.get("message")
-                    elif hasattr(response, "message"):
-                        reply_text = response.message
-                    elif isinstance(response, str):
-                        reply_text = response
+                    # 4. Sending response back to user (matching whatsapp/index.ts)
+                    res_type = getattr(response, "type", None) or (response.get("type") if isinstance(response, dict) else "text")
+                    res_path = getattr(response, "path", None) or (response.get("path") if isinstance(response, dict) else None)
+                    clean_text = getattr(response, "message", None) or (response.get("message") if isinstance(response, dict) else (response if isinstance(response, str) else ""))
 
-                    if sender and reply_text:
-                        await send_whatsapp_message(to=sender, message=reply_text)
+                    # Resolve relative file path if necessary
+                    if res_path and not os.path.isabs(res_path) and not os.path.exists(res_path):
+                        candidate = os.path.join(os.path.dirname(__file__), res_path)
+                        if os.path.exists(candidate):
+                            res_path = candidate
+
+                    if sender:
+                        if res_type == "image":
+                            image_path = res_path
+                            if image_path and os.path.exists(image_path):
+                                await send_whatsapp_message(to=sender, message=clean_text, type="image", path=image_path)
+                            elif clean_text:
+                                await send_whatsapp_message(to=sender, message=clean_text)
+
+                        elif res_type == "video":
+                            video_path = res_path
+                            if video_path and os.path.exists(video_path):
+                                await send_whatsapp_message(to=sender, message=clean_text, type="video", path=video_path)
+                            elif clean_text:
+                                await send_whatsapp_message(to=sender, message=clean_text)
+
+                        elif res_type == "document":
+                            doc_path = res_path
+                            if doc_path and os.path.exists(doc_path):
+                                await send_whatsapp_message(to=sender, message=clean_text, type="document", path=doc_path)
+                            elif clean_text:
+                                await send_whatsapp_message(to=sender, message=clean_text)
+
+                        elif res_type == "audio":
+                            audio_path = res_path
+                            if audio_path and os.path.exists(audio_path):
+                                await send_whatsapp_message(to=sender, message=clean_text, type="audio", path=audio_path)
+                            elif clean_text:
+                                await send_whatsapp_message(to=sender, message=clean_text)
+
+                        else:
+                            if clean_text:
+                                await send_whatsapp_message(to=sender, message=clean_text)
 
     return Response(content="EVENT_RECEIVED", status_code=status.HTTP_200_OK)

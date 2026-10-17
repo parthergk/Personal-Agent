@@ -91,6 +91,7 @@ async function connect(): Promise<void> {
       if (!chatId) return;
 
       const response = await askAgent(msgResponse);
+      console.log("llm response after the processing", response);
       
       // sending response back to user       
       if (response.type === "image") {
