@@ -78,7 +78,8 @@ async function connect(): Promise<void> {
       const myJid = sock.user?.id ? sock.user.id.replace(/:.*@/, "@") : "";
 
       if ((msg.key as any).remoteJidAlt !== myJid) return;
-
+      console.log("Message:", msg);
+      
       const msgResponse = await getMsg(msg, sock);
       
       if (!msgResponse) return;

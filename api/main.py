@@ -7,7 +7,7 @@ from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from agent import process_message, IncomingMessage
 from processors import preprocess_message
-from services.reminder_scheduler import start_scheduler, stop_scheduler
+from services import start_scheduler, stop_scheduler, get_msg, send_whatsapp_message
 
 load_dotenv()
 
@@ -75,13 +75,40 @@ async def receive_webhook(request: Request):
 
     print("\n[WhatsApp Webhook Received]:", data)
 
-    # Print individual messages if present in the payload
+    # Process individual messages if present in the payload
     if isinstance(data, dict):
         for entry in data.get("entry", []):
             for change in entry.get("changes", []):
                 value = change.get("value", {})
                 for message in value.get("messages", []):
-                    print("\n[WhatsApp Message]:", message)
+                    sender = message.get("from")
+                    print(f"\n[WhatsApp Message from {sender}]:", message)
+                    
+                    # 1. Parse raw webhook message into structured IncomingMessage (like getMsg.ts)
+                    incoming_msg = await get_msg(message)
+                    if not incoming_msg:
+                        continue
+
+                    print(f"\n[Structured IncomingMessage]:", incoming_msg)
+
+                    # 2. Preprocess (image analysis, Sarvam audio transcription, documents, etc.)
+                    preprocess_response = preprocess_message(incoming_msg)
+                    print("\n[Preprocessed Message]:", preprocess_response)
+
+                    # 3. Process with LLM Agent
+                    response = process_message(preprocess_response)
+                    print("\n[Agent Response]:", response)
+
+                    # 4. Send response back to the user on WhatsApp
+                    reply_text = None
+                    if isinstance(response, dict):
+                        reply_text = response.get("message")
+                    elif hasattr(response, "message"):
+                        reply_text = response.message
+                    elif isinstance(response, str):
+                        reply_text = response
+
+                    if sender and reply_text:
+                        await send_whatsapp_message(to=sender, message=reply_text)
 
     return Response(content="EVENT_RECEIVED", status_code=status.HTTP_200_OK)
-
