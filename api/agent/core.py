@@ -38,10 +38,12 @@ def _call_llm_parse(messages: list) -> object:
     )
 
 
-def _run_tool(name: str, args: dict) -> str:
+def _run_tool(name: str, args: dict, sender: str = None) -> str:
     """
     Dispatches a tool call synchronously — must be called via run_in_executor
     since save_memory / search_memory both do blocking network I/O (OpenAI + Qdrant).
+    sender is the WhatsApp phone number of the user who triggered the request;
+    it is forwarded to create_reminder so the scheduler knows who to notify.
     """
     if name == "save_memory":
         return save_memory(
@@ -57,13 +59,14 @@ def _run_tool(name: str, args: dict) -> str:
     elif name == "create_reminder":
         return create_reminder(
             message=args.get("message"),
-            due_at=args.get("due_at")
+            due_at=args.get("due_at"),
+            recipient_phone=sender
         )
     else:
         return f"Unknown tool: {name}"
 
 
-async def process_message(message: IncomingMessage) -> str:
+async def process_message(message: IncomingMessage, sender: str = None) -> str:
     """
     Main entry point for handling incoming messages from the FastAPI app.
     All blocking SDK calls (OpenAI + Qdrant) are offloaded to a thread pool
@@ -114,7 +117,7 @@ async def process_message(message: IncomingMessage) -> str:
             args = json.loads(tool_call.function.arguments)
 
             result = await loop.run_in_executor(
-                None, functools.partial(_run_tool, name, args)
+                None, functools.partial(_run_tool, name, args, sender)
             )
 
             messages.append({

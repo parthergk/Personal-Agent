@@ -32,15 +32,19 @@ def send_reminder_via_whatsapp(reminder: Reminder) -> None:
     Synchronous delivery handler — called from the APScheduler background thread.
 
     Formats the reminder as a WhatsApp text message and sends it to the
-    bot owner's phone number using the Meta Cloud API.
+    recipient stored on the reminder row (set at creation time from the
+    webhook sender number). Falls back to RECIPIENT_PHONE env var for
+    reminders created before this field was added.
 
     Raises an exception on failure so that reminder_scheduler.py can
     mark the reminder as failed and retry on the next poll cycle.
     """
-    if not RECIPIENT_PHONE:
+    to_phone = getattr(reminder, "recipient_phone", None) or RECIPIENT_PHONE
+
+    if not to_phone:
         raise RuntimeError(
-            "RECIPIENT_PHONE_NUMBER is not set in environment. "
-            "Cannot deliver reminder."
+            "No recipient phone number available for reminder "
+            f"#{reminder.id}. Set RECIPIENT_PHONE_NUMBER in .env as fallback."
         )
 
     # Build a user-friendly message body
@@ -52,7 +56,7 @@ def send_reminder_via_whatsapp(reminder: Reminder) -> None:
     logger.info(
         "Sending reminder #%s to %s via WhatsApp: %s",
         reminder.id,
-        RECIPIENT_PHONE,
+        to_phone,
         reminder.message,
     )
 
@@ -61,10 +65,11 @@ def send_reminder_via_whatsapp(reminder: Reminder) -> None:
     # no event loop attached — asyncio.run() creates and closes one cleanly.
     asyncio.run(
         send_whatsapp_message(
-            to=RECIPIENT_PHONE,
+            to=to_phone,
             message=body,
             type="text",
         )
     )
 
     logger.info("Reminder #%s delivered successfully via WhatsApp.", reminder.id)
+

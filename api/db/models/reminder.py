@@ -10,6 +10,7 @@ class Reminder(Base):
     message = Column(String, nullable=False)
     due_at = Column(DateTime, nullable=False, index=True)
     timezone = Column(String, nullable=False, default="Asia/Kolkata")
+    recipient_phone = Column(String, nullable=True)   # WhatsApp sender number to deliver to
     status = Column(String, default="pending", nullable=False, index=True)
     attempts = Column(Integer, default=0, nullable=False)
     locked_until = Column(DateTime, nullable=True, index=True)
