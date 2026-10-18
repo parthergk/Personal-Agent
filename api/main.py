@@ -33,7 +33,7 @@ class ChatRequest(BaseModel):
 @app.post("/chat")
 async def chat(request: ChatRequest):
 
-    preprocess_response = preprocess_message(request.message)
+    preprocess_response = await preprocess_message(request.message)
     print("\n\npreprocess response", preprocess_response)
     response = process_message(preprocess_response)
 
@@ -82,18 +82,14 @@ async def receive_webhook(request: Request):
                 value = change.get("value", {})
                 for message in value.get("messages", []):
                     sender = message.get("from")
-                    print(f"\n[WhatsApp Message from {sender}]:", message)
                     
                     # 1. Parse raw webhook message into structured IncomingMessage (like getMsg.ts)
                     incoming_msg = await get_msg(message)
                     if not incoming_msg:
                         continue
 
-                    print(f"\n[Structured IncomingMessage]:", incoming_msg)
-
                     # 2. Preprocess (image analysis, Sarvam audio transcription, documents, etc.)
-                    preprocess_response = preprocess_message(incoming_msg)
-                    print("\n[Preprocessed Message]:", preprocess_response)
+                    preprocess_response = await preprocess_message(incoming_msg)
 
                     # 3. Process with LLM Agent
                     response = process_message(preprocess_response)

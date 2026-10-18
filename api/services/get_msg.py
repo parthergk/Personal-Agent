@@ -55,7 +55,6 @@ async def save_media(
         download_url = media_data.get("url")
         if not download_url:
             raise ValueError(f"No download URL returned by Meta for media ID: {media_id}")
-
         detected_mime = media_data.get("mime_type") or mime_type
 
         # Step 2: Download raw binary data from lookaside URL
