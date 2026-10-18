@@ -102,7 +102,7 @@ async def process_message(message: IncomingMessage, sender: str = None) -> str:
 
         assistant_msg = response.choices[0].message
         messages.append(assistant_msg)
-        print("\n\nassistant msg", assistant_msg)
+        print("\n\nassistant msg", assistant_msg.tool_calls)
 
         if not assistant_msg.tool_calls:
             return {
@@ -131,7 +131,7 @@ async def process_message(message: IncomingMessage, sender: str = None) -> str:
             None, functools.partial(_call_llm_parse, messages)
         )
         parsed_response = final_response.choices[0].message.parsed
-        print("final response", parsed_response)
+        print("\n\nfinal response", parsed_response)
         return parsed_response or ""
 
     except Exception as e:
