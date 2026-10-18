@@ -35,7 +35,7 @@ async def chat(request: ChatRequest):
 
     preprocess_response = await preprocess_message(request.message)
     print("\n\npreprocess response", preprocess_response)
-    response = process_message(preprocess_response)
+    response = await process_message(preprocess_response)
 
     return {
         "response": response
@@ -92,7 +92,7 @@ async def receive_webhook(request: Request):
                     preprocess_response = await preprocess_message(incoming_msg)
 
                     # 3. Process with LLM Agent
-                    response = process_message(preprocess_response)
+                    response = await process_message(preprocess_response)
                     print("\n[Agent Response]:", response)
 
                     # 4. Sending response back to user (matching whatsapp/index.ts)
