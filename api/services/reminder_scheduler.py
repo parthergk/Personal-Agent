@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from db.session import SessionLocal
 from db.models.reminder import Reminder
+from .send_reminder import send_reminder_via_whatsapp
 
 logger = logging.getLogger("reminder_scheduler")
 if not logger.handlers:
@@ -30,7 +31,10 @@ MAX_DELIVERY_ATTEMPTS = 3
 DEFAULT_POLL_INTERVAL_SECONDS = 5
 
 _scheduler: Optional[BackgroundScheduler] = None
-_delivery_handler: Optional[Callable[[Reminder], None]] = None
+
+# Register the WhatsApp delivery handler as the default.
+# Can be overridden at runtime via set_delivery_handler().
+_delivery_handler: Optional[Callable[[Reminder], None]] = send_reminder_via_whatsapp
 
 
 def set_delivery_handler(handler: Callable[[Reminder], None]):
