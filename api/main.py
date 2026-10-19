@@ -7,7 +7,13 @@ from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from agent import process_message, IncomingMessage
 from processors import preprocess_message
-from services import start_scheduler, stop_scheduler, get_msg, send_whatsapp_message
+from services import (
+    start_scheduler,
+    stop_scheduler,
+    get_msg,
+    send_whatsapp_message,
+    mark_as_read_and_typing,
+)
 
 load_dotenv()
 
@@ -82,7 +88,12 @@ async def receive_webhook(request: Request):
                 value = change.get("value", {})
                 for message in value.get("messages", []):
                     sender = message.get("from")
-                    
+                    message_id = message.get("id")
+
+                    # Mark message as read (blue ticks) and show typing indicator immediately
+                    if message_id:
+                        await mark_as_read_and_typing(message_id)
+
                     # 1. Parse raw webhook message into structured IncomingMessage (like getMsg.ts)
                     incoming_msg = await get_msg(message)
                     if not incoming_msg:

@@ -201,3 +201,50 @@ async def send_whatsapp_message(
             logger.error("WhatsApp API error: %s", res.text)
         res.raise_for_status()
         return res.json()
+
+
+async def mark_as_read_and_typing(message_id: str) -> bool:
+    """
+    Marks the user's incoming message as read (blue ticks)
+    and starts the 'typing...' indicator on WhatsApp.
+    Endpoint: POST /{phone_number_id}/messages
+    """
+    whatsapp_token = os.getenv("WHATSAPP_TOKEN")
+    phone_number_id = os.getenv("PHONE_NUMBER_ID")
+
+    if not whatsapp_token or not phone_number_id:
+        logger.warning("Missing WHATSAPP_TOKEN or PHONE_NUMBER_ID; cannot mark message as read.")
+        return False
+
+    url = f"{BASE_GRAPH_URL}/{phone_number_id}/messages"
+    headers = {
+        "Authorization": f"Bearer {whatsapp_token}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "messaging_product": "whatsapp",
+        "status": "read",
+        "message_id": message_id,
+        "typing_indicator": {
+            "type": "text"
+        }
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.post(url, headers=headers, json=payload)
+            if res.status_code == 400:
+                # Fallback to standard mark-as-read if typing_indicator is rejected
+                fallback_payload = {
+                    "messaging_product": "whatsapp",
+                    "status": "read",
+                    "message_id": message_id,
+                }
+                res = await client.post(url, headers=headers, json=fallback_payload)
+            res.raise_for_status()
+            logger.info("Marked message %s as read and started typing indicator.", message_id)
+            return True
+    except Exception as e:
+        logger.warning("Failed to mark message %s as read/typing: %s", message_id, e)
+        return False
+
