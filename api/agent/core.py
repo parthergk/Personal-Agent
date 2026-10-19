@@ -9,6 +9,7 @@ from .prompts import SYSTEM_PROMPT
 from .tools import TOOLS
 from .memory_store import save_memory, search_memory
 from .reminder import create_reminder
+from .conversation_store import get_conversation_context, add_conversation_turn
 
 logger = logging.getLogger(__name__)
 
@@ -89,8 +90,14 @@ async def process_message(message: IncomingMessage, sender: str = None) -> str:
 
     user_content_with_time = f"Current Time: {current_time}\nUser Message: {user_content}"
 
+    # Fetch persistent conversation history for this sender
+    history = await loop.run_in_executor(
+        None, functools.partial(get_conversation_context, sender)
+    ) if sender else []
+
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
+        *history,
         {"role": "user", "content": user_content_with_time}
     ]
 
@@ -105,9 +112,20 @@ async def process_message(message: IncomingMessage, sender: str = None) -> str:
         print("\n\nAssistant Msg: ", assistant_msg)
 
         if not assistant_msg.tool_calls:
+            assistant_text = assistant_msg.content or ""
+            # Filter out out-of-scope refusals from polluting context
+            is_out_of_scope = (
+                "personal memory assistant" in assistant_text.lower()
+                and "only help" in assistant_text.lower()
+            )
+            if sender:
+                await loop.run_in_executor(
+                    None, functools.partial(add_conversation_turn, sender, user_content, assistant_text, is_out_of_scope)
+                )
+
             return {
                 "type": "text",
-                "message": assistant_msg.content or "",
+                "message": assistant_text,
                 "path": None
             }
 
@@ -132,6 +150,14 @@ async def process_message(message: IncomingMessage, sender: str = None) -> str:
         )
         parsed_response = final_response.choices[0].message.parsed
         print("\n\nfinal response", parsed_response)
+
+        # Persist conversation turn into context memory
+        if sender and parsed_response:
+            assistant_summary = parsed_response.message or f"Completed action: {parsed_response.type}"
+            await loop.run_in_executor(
+                None, functools.partial(add_conversation_turn, sender, user_content, assistant_summary, False)
+            )
+
         return parsed_response or ""
 
     except Exception as e:
