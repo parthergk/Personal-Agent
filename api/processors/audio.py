@@ -37,7 +37,7 @@ async def process_audio(path, mime_type: Optional[str]) -> IncomingMessage:
             type="audio",
             path=path,
             mime_type=mime_type,
-            caption="[Audio Error]: File not found."
+            caption="[Audio Error]: The sent audio could not be loaded or was corrupted. Please ask the user to re-send the audio."
         )
 
     # --- Guard: file size ---
@@ -49,7 +49,7 @@ async def process_audio(path, mime_type: Optional[str]) -> IncomingMessage:
             type="audio",
             path=path,
             mime_type=mime_type,
-            caption=f"[Audio Error]: File is too large ({size_mb:.1f} MB). Maximum allowed is {MAX_AUDIO_SIZE_MB} MB."
+            caption=f"[Audio Error]: The audio file is too large ({size_mb:.1f} MB). Maximum allowed size is {MAX_AUDIO_SIZE_MB} MB. Please ask the user to send a shorter audio."
         )
 
     last_error: Exception | None = None
@@ -74,7 +74,7 @@ async def process_audio(path, mime_type: Optional[str]) -> IncomingMessage:
                     type="audio",
                     path=path,
                     mime_type=mime_type,
-                    caption="[Audio Transcript]: (No speech detected)"
+                    caption="[Audio]: No clear speech could be detected in this audio recording. Please let the user know and ask them to speak clearly or re-record."
                 )
 
             return IncomingMessage(
@@ -114,5 +114,5 @@ async def process_audio(path, mime_type: Optional[str]) -> IncomingMessage:
         type="audio",
         path=path,
         mime_type=mime_type,
-        caption=f"[Audio Transcription Error]: {last_error}"
+        caption="[Audio Error]: Unable to transcribe the audio note due to a temporary service issue. Please apologize and ask the user to re-send the voice note or type their message."
     )
