@@ -93,5 +93,5 @@ async def process_video(path: Optional[str], caption: Optional[str], mime_type: 
         type="video",
         path=path,
         mime_type=mime_type,
-        caption=caption or "Ask the user if he/she wants to save this video."
+        caption=caption or "You uploaded a video. Do you want to save it?"
     )

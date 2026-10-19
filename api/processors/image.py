@@ -29,22 +29,14 @@ def encode_image(image_path: str) -> str:
 
 
 async def process_image(path, caption: Optional[str], mime_type: Optional[str]) -> IncomingMessage:
-    # If a caption was already provided (e.g. user typed one), use it directly
-    if caption:
-        return IncomingMessage(
-            type="image",
-            path=path,
-            caption=caption,
-            mime_type=mime_type
-        )
-
+  
     # --- Guard: file must exist ---
     if not path or not os.path.exists(path):
         logger.warning("Image file not found: %s", path)
         return IncomingMessage(
             type="image",
             path=path,
-            caption="unnamed image",
+            caption="[Image Error]: The uploaded image could not be loaded or was corrupted. Please ask the user to re-upload the image.",
             mime_type=mime_type
         )
 
@@ -60,6 +52,15 @@ async def process_image(path, caption: Optional[str], mime_type: Optional[str]) 
             mime_type=mime_type
         )
 
+    # If a caption was already provided (e.g. user typed one), use it directly
+    if caption:
+        return IncomingMessage(
+            type="image",
+            path=path,
+            caption=caption,
+            mime_type=mime_type
+        )
+
     last_error: Exception | None = None
 
     for attempt in range(1, MAX_RETRIES + 2):  # attempts: 1, 2, 3
@@ -71,7 +72,10 @@ async def process_image(path, caption: Optional[str], mime_type: Optional[str]) 
             user_content = [
                 {
                     "type": "text",
-                    "text": "Analyze the image and create a short description (5-10 words). Do not describe the image in detail."
+                    "text": ("Analyze the image and write a single short sentence (10-15 words) asking the user "
+                            "if they want to save it, identifying what the image shows. "
+                            "Example format: 'Ask the user. You uploaded [short description of image]. Do you want to save it?' "
+                            "Do not add any additional text or commentary.")
                 },
                 {
                     "type": "image_url",
@@ -93,7 +97,7 @@ async def process_image(path, caption: Optional[str], mime_type: Optional[str]) 
             description = (response.choices[0].message.content or "").strip()
             if not description:
                 logger.warning("OpenAI returned an empty description for: %s", path)
-                description = "unnamed image"
+                description = "Ask the user. You uploaded an image. Do you want to save it?"
 
             return IncomingMessage(
                 type="image",
@@ -142,6 +146,6 @@ async def process_image(path, caption: Optional[str], mime_type: Optional[str]) 
     return IncomingMessage(
         type="image",
         path=path,
-        caption=f"[Image Analysis Error]: {last_error}",
+        caption="[Image Error]: User uploaded the image without caption. Unable to analyze the image to understand the content due to a temporary issue. Please ask the user if they want to save this image.",
         mime_type=mime_type
     )
