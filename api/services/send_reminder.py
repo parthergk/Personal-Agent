@@ -49,7 +49,7 @@ def send_reminder_via_whatsapp(reminder: Reminder) -> None:
 
     # Build a user-friendly message body
     body = (
-        f"🔔 *Reminder*\n\n"
+        f"⏰ Reminder\n\n"
         f"{reminder.message}"
     )
 

@@ -102,7 +102,7 @@ async def process_message(message: IncomingMessage, sender: str = None) -> str:
 
         assistant_msg = response.choices[0].message
         messages.append(assistant_msg)
-        print("\n\nassistant msg", assistant_msg.tool_calls)
+        print("\n\nAssistant Msg: ", assistant_msg)
 
         if not assistant_msg.tool_calls:
             return {
