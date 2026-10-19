@@ -19,7 +19,7 @@ async def process_document(path: Optional[str], caption: Optional[str], mime_typ
         return IncomingMessage(
             type="document",
             path=path,
-            caption=caption or "[Document: No file path provided]",
+            caption="[Document Error]: No file path provided. Please ask the user to re-send the document.",
             mime_type=mime_type
         )
 
@@ -29,11 +29,12 @@ async def process_document(path: Optional[str], caption: Optional[str], mime_typ
 
     # --- Guard: file must exist before routing ---
     if not os.path.exists(path):
+        filename = os.path.basename(path)
         logger.warning("Document file not found: %s", path)
         return IncomingMessage(
             type="document",
             path=path,
-            caption=caption or f"[Document Error]: File not found — {os.path.basename(path)}",
+            caption=f"[Document Error]: The document ({filename}) could not be loaded or was corrupted. Please ask the user to re-send the file.",
             mime_type=mime_type
         )
 
@@ -62,8 +63,8 @@ async def process_document(path: Optional[str], caption: Optional[str], mime_typ
                     type="document",
                     path=path,
                     caption=caption or (
-                        f"[Document: {filename}] File is too large to read inline "
-                        f"({size_kb:.0f} KB). Only files up to {MAX_TEXT_DOC_SIZE_BYTES // 1024} KB are supported."
+                        f"[Document Error]: The document ({filename}) is too large to read inline "
+                        f"({size_kb:.0f} KB, limit is {MAX_TEXT_DOC_SIZE_BYTES // 1024} KB). Ask the user if they want to save it as a file."
                     ),
                     mime_type=mime_type
                 )
@@ -85,7 +86,7 @@ async def process_document(path: Optional[str], caption: Optional[str], mime_typ
             return IncomingMessage(
                 type="document",
                 path=path,
-                caption=caption or f"[Document Error]: Could not read file — {e}",
+                caption="[Document Error]: Unable to read the text document due to a file error. Please ask the user to re-send the document.",
                 mime_type=mime_type
             )
 
@@ -94,28 +95,28 @@ async def process_document(path: Optional[str], caption: Optional[str], mime_typ
         return IncomingMessage(
             type="document",
             path=path,
-            caption=caption or "[PDF Text Extraction Placeholder]",
+            caption=caption or "Ask the user. You uploaded a PDF document. Do you want to save it?",
             mime_type=mime_type
         )
     elif ext in {".docx", ".doc"}:
         return IncomingMessage(
             type="document",
             path=path,
-            caption=caption or "[Word Document Text Extraction Placeholder]",
+            caption=caption or "Ask the user. You uploaded a Word document. Do you want to save it?",
             mime_type=mime_type
         )
     elif ext in {".xlsx", ".xls"}:
         return IncomingMessage(
             type="document",
             path=path,
-            caption=caption or "[Excel Spreadsheet Data Extraction Placeholder]",
+            caption=caption or "Ask the user. You uploaded an Excel spreadsheet. Do you want to save it?",
             mime_type=mime_type
         )
     elif ext in {".zip", ".rar", ".tar", ".gz"}:
         return IncomingMessage(
             type="document",
             path=path,
-            caption=caption or "[Archive Index/Structure Placeholder]",
+            caption=caption or "Ask the user. You uploaded an archive file. Do you want to save it?",
             mime_type=mime_type
         )
 
@@ -124,6 +125,6 @@ async def process_document(path: Optional[str], caption: Optional[str], mime_typ
     return IncomingMessage(
         type="document",
         path=path,
-        caption=caption or f"[Document: Unsupported file format ({ext}) for file {filename}]",
+        caption=caption or f"Ask the user. You uploaded a document ({filename}). Do you want to save it?",
         mime_type=mime_type
     )
