@@ -66,9 +66,9 @@ export default function Home() {
         </div>
 
         {/* Center Hero Content */}
-        <div className="flex flex-col items-center text-center max-w-2xl mt-4 sm:mt-8 px-2">
+        <div className="flex flex-col items-center text-center max-w-2xl mt-10 sm:mt-8 px-2">
           {/* Main Headline */}
-          <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl xl:text-[84px] font-normal leading-[1.08] tracking-tight text-[#171717] break-words">
+          <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl xl:text-[84px] font-normal leading-[1.08] tracking-tight text-[#171717] break-words">
             Your world,
             <br />
             in quiet sync.
