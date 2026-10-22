@@ -116,18 +116,21 @@ export default function Home() {
             </h2>
 
             <p className="font-mono text-xs sm:text-[13px] tracking-wide text-neutral-600 leading-relaxed max-w-lg">
-              MUSE understands your context and helps you move
+              {/* MUSE understands your context and helps you move
               through everyday tasks — from organizing plans to
-              handling the busywork.
+              handling the busywork. */}
+              MUSE helps you organize plans, remember what matters,
+              and take care of everyday tasks — all through a
+              simple conversation.
             </p>
 
             {/* Feature Line Tabs - Clean responsive wrap */}
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 font-mono text-[11px] sm:text-xs text-neutral-700 tracking-wider">
-              <span>Remember what matters</span>
+              <span>Less mental clutter</span>
               <span className="hidden sm:inline text-neutral-400">|</span>
-              <span>Plan your next step</span>
+              <span>More clarity</span>
               <span className="hidden sm:inline text-neutral-400">|</span>
-              <span>Take care of routine tasks</span>
+              <span>Life in better balance</span>
             </div>
 
             {/* Action Link */}
