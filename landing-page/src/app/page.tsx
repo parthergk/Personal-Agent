@@ -6,7 +6,7 @@ export default function Home() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-[position:35%_top] sm:bg-[position:top_center]"
         style={{
-          backgroundImage: "url('/bg.png')",
+          backgroundImage: "url('/bg.webp')",
           backgroundRepeat: "no-repeat",
           // backgroundPosition: "top center",
           backgroundSize: "cover",
@@ -116,18 +116,21 @@ export default function Home() {
             </h2>
 
             <p className="font-mono text-xs sm:text-[13px] tracking-wide text-neutral-600 leading-relaxed max-w-lg">
-              MUSE understands your context and helps you move
+              {/* MUSE understands your context and helps you move
               through everyday tasks — from organizing plans to
-              handling the busywork.
+              handling the busywork. */}
+              MUSE helps you organize plans, remember what matters,
+              and take care of everyday tasks — all through a
+              simple conversation.
             </p>
 
             {/* Feature Line Tabs - Clean responsive wrap */}
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 font-mono text-[11px] sm:text-xs text-neutral-700 tracking-wider">
-              <span>Remember what matters</span>
+              <span>Less mental clutter</span>
               <span className="hidden sm:inline text-neutral-400">|</span>
-              <span>Plan your next step</span>
+              <span>More clarity</span>
               <span className="hidden sm:inline text-neutral-400">|</span>
-              <span>Take care of routine tasks</span>
+              <span>Life in better balance</span>
             </div>
 
             {/* Action Link */}
@@ -163,9 +166,10 @@ export default function Home() {
       </section>
 
       {/* ─── FOOTER ─── */}
-      <footer className="w-full max-w-[1360px] mx-auto px-6 sm:px-12 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px] sm:text-[11px] tracking-wider text-neutral-600 border-t border-neutral-300/40">
+      <footer className="w-full max-w-[1360px] mx-auto px-6 sm:px-12 mt-8 md:mt-6 font-mono text-[10px] sm:text-[11px] tracking-wider text-neutral-600">
+      <div className="w-full pt-4 pb-6 flex flex-col  sm:flex-row item-start sm:items-center justify-between gap-2 sm:gap-4  border-t border-neutral-500/50">
         <div>
-          &copy; 2026 Muse. All rights reserved.
+          &copy; 2026 Muse.
         </div>
         <div className="flex items-center gap-3">
           <a href="#privacy" className="hover:opacity-75 transition-opacity">
@@ -176,6 +180,7 @@ export default function Home() {
             Terms of Service
           </a>
         </div>
+      </div>
       </footer>
     </main>
   );
