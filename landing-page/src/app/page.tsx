@@ -1,3 +1,5 @@
+import CornerBox from "@/components/CornerBox";
+
 export default function Home() {
   return (
     <main className="relative isolate min-h-svh w-full overflow-x-hidden bg-[#f6f4ef] text-[#171717] flex flex-col justify-between">
@@ -16,14 +18,37 @@ export default function Home() {
       {/* ─── TOP NAVIGATION ─── */}
       <header className="w-full max-w-[1360px] mx-auto px-5 sm:px-12 pt-6 sm:pt-10 flex items-center justify-between text-[11px] sm:text-xs font-mono tracking-[0.16em] sm:tracking-[0.25em] font-medium uppercase z-20">
         <div className="flex items-center gap-2">
-          <span>MUSE / PERSONAL AGENT</span>
+          <a
+            href="/"
+            className="group relative inline-flex items-center gap-2 select-none"
+          >
+            {/* MUSE with selection box */}
+            <span className="relative inline-flex items-center justify-center px-1.5 py-0.5">
+              <span>MUSE</span>
+              <CornerBox hoverOnly dimension="51 x 15" />
+            </span>
+
+            {/* Subtitle */}
+            <span className="text-neutral-500 font-normal tracking-[0.16em] sm:tracking-[0.25em]">
+              / PERSONAL AGENT
+            </span>
+          </a>
         </div>
         <nav className="flex items-center gap-5 sm:gap-12">
-          <a href="#about" className="hover:opacity-60 transition-opacity">
-            ABOUT
+          <a
+            href="#about"
+            className="group relative inline-flex items-center justify-center px-1.5 py-0.5 select-none"
+          >
+            <span>ABOUT</span>
+            <CornerBox hoverOnly dimension="58 x 15" />
           </a>
-          <a href="#login" className="hover:opacity-60 transition-opacity">
-            LOG IN
+
+          <a
+            href="#login"
+            className="group relative inline-flex items-center justify-center px-1.5 py-0.5 select-none"
+          >
+            <span>LOG IN</span>
+            <CornerBox hoverOnly dimension="62 x 15" />
           </a>
         </nav>
       </header>
@@ -76,8 +101,9 @@ export default function Home() {
 
           {/* Badge */}
           <div className="mt-6 sm:mt-8 mb-5 sm:mb-6">
-            <span className="inline-block border border-neutral-400/80 bg-[#f6f4ef]/60 backdrop-blur-[2px] px-5 sm:px-6 py-2 text-[10px] sm:text-xs font-mono tracking-[0.2em] sm:tracking-[0.28em] uppercase text-neutral-800 font-medium">
-              PERSONAL AI AGENT
+            <span className="relative inline-flex items-center justify-center bg-[#f6f4ef]/60 backdrop-blur-[2px] px-5 sm:px-6 py-2 text-[10px] sm:text-xs font-mono tracking-[0.2em] sm:tracking-[0.28em] uppercase text-neutral-800 font-medium select-none">
+              <span>PERSONAL AI AGENT</span>
+              <CornerBox />
             </span>
           </div>
 
@@ -167,20 +193,20 @@ export default function Home() {
 
       {/* ─── FOOTER ─── */}
       <footer className="w-full max-w-[1360px] mx-auto px-6 sm:px-12 mt-8 md:mt-6 font-mono text-[10px] sm:text-[11px] tracking-wider text-neutral-600">
-      <div className="w-full pt-4 pb-6 flex flex-col  sm:flex-row item-start sm:items-center justify-between gap-2 sm:gap-4  border-t border-neutral-500/50">
-        <div>
-          &copy; 2026 Muse.
+        <div className="w-full pt-4 pb-6 flex flex-col  sm:flex-row item-start sm:items-center justify-between gap-2 sm:gap-4  border-t border-neutral-500/50">
+          <div>
+            &copy; 2026 Muse.
+          </div>
+          <div className="flex items-center gap-3">
+            <a href="#privacy" className="hover:opacity-75 transition-opacity">
+              Privacy Policy
+            </a>
+            <span>|</span>
+            <a href="#terms" className="hover:opacity-75 transition-opacity">
+              Terms of Service
+            </a>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <a href="#privacy" className="hover:opacity-75 transition-opacity">
-            Privacy Policy
-          </a>
-          <span>|</span>
-          <a href="#terms" className="hover:opacity-75 transition-opacity">
-            Terms of Service
-          </a>
-        </div>
-      </div>
       </footer>
     </main>
   );
