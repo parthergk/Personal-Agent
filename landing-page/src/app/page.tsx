@@ -6,7 +6,7 @@ export default function Home() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-[position:35%_top] sm:bg-[position:top_center]"
         style={{
-          backgroundImage: "url('/bg.png')",
+          backgroundImage: "url('/bg.webp')",
           backgroundRepeat: "no-repeat",
           // backgroundPosition: "top center",
           backgroundSize: "cover",
