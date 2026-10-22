@@ -1,0 +1,109 @@
+import getMsg from "./getMsg.js";
+import fs from "fs";
+import { makeWASocket, useMultiFileAuthState } from "baileys";
+import QRCode from "qrcode";
+async function askAgent(msgPayload) {
+    try {
+        const response = await fetch("http://127.0.0.1:8000/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                message: msgPayload,
+            }),
+        });
+        if (!response.ok) {
+            throw new Error(`${response} HTTP: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.response;
+    }
+    catch (error) {
+        console.error(error);
+        return { type: "text", message: "Agent is currently unavailable.", path: "" };
+    }
+}
+async function connect() {
+    const { state, saveCreds } = await useMultiFileAuthState("auth");
+    const sock = makeWASocket({
+        auth: state,
+        shouldSyncHistoryMessage: () => false,
+    });
+    sock.ev.on("creds.update", saveCreds);
+    sock.ev.on("connection.update", async (update) => {
+        const { connection, lastDisconnect, qr } = update;
+        if (qr) {
+            await QRCode.toFile("qr.png", qr);
+            console.log("📱 Scan qr.png");
+        }
+        if (connection === "open") {
+            console.log("✅ WhatsApp Connected");
+        }
+        if (connection === "close") {
+            console.log("❌ Disconnected");
+            console.log(lastDisconnect);
+            // reconnect
+            connect();
+        }
+    });
+    sock.ev.on("messages.upsert", async ({ messages, type }) => {
+        try {
+            if (type !== "notify")
+                return;
+            const msg = messages?.[0];
+            if (!msg)
+                return;
+            if (!msg.message)
+                return;
+            // ONLY process messages sent by YOU
+            if (!msg.key.fromMe)
+                return;
+            const myJid = sock.user?.id ? sock.user.id.replace(/:.*@/, "@") : "";
+            if (msg.key.remoteJidAlt !== myJid)
+                return;
+            console.log("Message:", msg);
+            const msgResponse = await getMsg(msg, sock);
+            if (!msgResponse)
+                return;
+            if (msgResponse.type === "text" && (!msgResponse.caption || !msgResponse.caption.trim()))
+                return;
+            console.log("📩 Command Payload:", JSON.stringify(msgResponse));
+            const chatId = msg.key.remoteJid;
+            if (!chatId)
+                return;
+            const response = await askAgent(msgResponse);
+            console.log("llm response after the processing", response);
+            // sending response back to user       
+            if (response.type === "image") {
+                const imagePath = response.path;
+                const cleanText = response.message;
+                if (fs.existsSync(imagePath)) {
+                    await sock.sendMessage(chatId, {
+                        image: { url: imagePath },
+                        caption: cleanText || undefined
+                    });
+                }
+            }
+            else if (response.type === "video") {
+                const videoPath = response.path;
+                const cleanText = response.message;
+                if (fs.existsSync(videoPath)) {
+                    await sock.sendMessage(chatId, {
+                        video: { url: videoPath },
+                        caption: cleanText || undefined
+                    });
+                }
+            }
+            else {
+                await sock.sendMessage(chatId, {
+                    text: response.message
+                });
+            }
+        }
+        catch (error) {
+            console.error("Message processing error:", error);
+        }
+    });
+}
+connect().catch(console.error);

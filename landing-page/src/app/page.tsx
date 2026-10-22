@@ -4,11 +4,11 @@ export default function Home() {
       {/* Decorative background */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[position:35%_top] sm:bg-[position:top_center]"
         style={{
           backgroundImage: "url('/bg.png')",
           backgroundRepeat: "no-repeat",
-          backgroundPosition: "top center",
+          // backgroundPosition: "top center",
           backgroundSize: "cover",
         }}
       />
@@ -66,7 +66,7 @@ export default function Home() {
         </div>
 
         {/* Center Hero Content */}
-        <div className="flex flex-col items-center text-center max-w-2xl mt-10 sm:mt-8 px-2">
+        <div className="flex flex-col items-center text-center max-w-2xl mt-18 sm:mt-8 px-2">
           {/* Main Headline */}
           <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl xl:text-[84px] font-normal leading-[1.08] tracking-tight text-[#171717] break-words">
             Your world,
