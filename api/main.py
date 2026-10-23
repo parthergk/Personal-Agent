@@ -1,10 +1,15 @@
 import logging
 import os
+import random
+import re
+from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query, Request, Response, status
+from fastapi import FastAPI, HTTPException, Query, Request, Response, status, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 from agent import process_message, IncomingMessage
 from processors import preprocess_message
 from services import (
@@ -14,6 +19,8 @@ from services import (
     send_whatsapp_message,
     mark_as_read_and_typing,
 )
+from db.session import Base, engine, get_db
+from db.models.user import User
 
 load_dotenv()
 
@@ -22,6 +29,12 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Ensure database tables exist
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        logger.warning("Could not auto-create tables: %s", e)
+
     # Start reminder scheduler on startup (every 5 seconds)
     start_scheduler(interval_seconds=5)
     yield
@@ -30,6 +43,27 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Allow CORS for Next.js frontend or other clients
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# In-memory OTP store: phone -> {"otp": str, "expires_at": datetime, "attempts": int}
+OTP_STORE: dict[str, dict] = {}
+
+
+def normalize_phone(phone: str) -> str:
+    """Normalize phone string to a consistent format (+<digits>)."""
+    cleaned = re.sub(r"[^\d+]", "", phone.strip())
+    if not cleaned.startswith("+"):
+        cleaned = "+" + cleaned
+    return cleaned
+
 
 
 class ChatRequest(BaseModel):
@@ -150,3 +184,159 @@ async def receive_webhook(request: Request):
                                 await send_whatsapp_message(to=sender, message=clean_text)
 
     return Response(content="EVENT_RECEIVED", status_code=status.HTTP_200_OK)
+
+
+class RegisterRequest(BaseModel):
+    phone: str
+    name: str | None = None
+
+
+class VerifyOtpRequest(BaseModel):
+    phone: str
+    otp: str
+    name: str | None = None
+
+
+@app.post("/register")
+@app.post("/send-otp")
+async def register_or_send_otp(request: RegisterRequest):
+    """Initiates registration / sign-in by generating and sending an OTP to the given phone number."""
+    if not request.phone or len(request.phone.strip()) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please provide a valid phone number",
+        )
+
+    normalized_phone = normalize_phone(request.phone)
+
+    # Generate 6-digit OTP
+    otp = f"{random.randint(100000, 999999)}"
+
+    # Store in memory with 10-minute validity
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
+    OTP_STORE[normalized_phone] = {
+        "otp": otp,
+        "expires_at": expires_at,
+        "attempts": 0,
+        "name": request.name,
+    }
+
+    # Optionally attempt to send via WhatsApp if service is configured
+    whatsapp_recipient = re.sub(r"\D", "", normalized_phone)
+    try:
+        await send_whatsapp_message(
+            to=whatsapp_recipient,
+            message=f"Your Vxyak verification code is: {otp}. It is valid for 10 minutes.",
+        )
+        logger.info("Sent WhatsApp verification OTP to %s", whatsapp_recipient)
+    except Exception as e:
+        logger.debug("WhatsApp OTP dispatch skipped or failed: %s", e)
+
+    return {
+        "success": True,
+        "message": "Verification code sent successfully",
+        "phone": normalized_phone,
+        "dummy_code": "123456",  # Provided for development/testing convenience
+    }
+
+
+@app.post("/verify-otp")
+async def verify_otp(request: VerifyOtpRequest, db: Session = Depends(get_db)):
+    """Verifies OTP and registers or activates the user in the database."""
+    if not request.phone or not request.otp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Phone number and OTP code are required",
+        )
+
+    normalized_phone = normalize_phone(request.phone)
+    entered_otp = request.otp.strip()
+
+    # Universal dev code bypass or validate against stored OTP
+    is_valid = False
+    if entered_otp == "123456":
+        is_valid = True
+    else:
+        record = OTP_STORE.get(normalized_phone)
+        if not record:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No verification code found for this phone number. Please request a new code.",
+            )
+
+        if datetime.utcnow() > record["expires_at"]:
+            OTP_STORE.pop(normalized_phone, None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Verification code has expired. Please request a new one.",
+            )
+
+        if record["attempts"] >= 5:
+            OTP_STORE.pop(normalized_phone, None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Too many incorrect attempts. Please request a new code.",
+            )
+
+        if record["otp"] == entered_otp:
+            is_valid = True
+        else:
+            record["attempts"] += 1
+            remaining = 5 - record["attempts"]
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid verification code. {remaining} attempt(s) remaining.",
+            )
+
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code.",
+        )
+
+    # Check or create user in SQLite / PostgreSQL DB
+    user = db.query(User).filter(User.phone == normalized_phone).first()
+
+    name_to_use = (
+        request.name.strip()
+        if request.name
+        else (OTP_STORE.get(normalized_phone, {}).get("name") or f"User {normalized_phone[-4:]}")
+    )
+
+    if not user:
+        user = User(
+            phone=normalized_phone,
+            name=name_to_use,
+            timezone="Asia/Kolkata",
+            is_active=True,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        logger.info("New user registered: %s (id: %s)", normalized_phone, user.id)
+    else:
+        user.is_active = True
+        if request.name:
+            user.name = request.name.strip()
+        user.updated_at = datetime.utcnow()
+        db.commit()
+        db.refresh(user)
+        logger.info("Existing user verified: %s (id: %s)", normalized_phone, user.id)
+
+    # Clear OTP record upon successful verification
+    OTP_STORE.pop(normalized_phone, None)
+
+    return {
+        "success": True,
+        "message": "User verified and registered successfully",
+        "user": {
+            "id": user.id,
+            "phone": user.phone,
+            "name": user.name,
+            "timezone": user.timezone,
+            "is_active": user.is_active,
+        },
+    }
+
