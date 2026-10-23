@@ -1,3 +1,4 @@
+import Link from "next/link";
 import CornerBox from "@/components/CornerBox";
 
 export default function Home() {
@@ -43,13 +44,13 @@ export default function Home() {
             <CornerBox hoverOnly dimension="58 x 15" />
           </a>
 
-          <a
-            href="#login"
+          <Link
+            href="/register"
             className="group relative inline-flex items-center justify-center px-1.5 py-0.5 select-none"
           >
             <span>LOG IN</span>
             <CornerBox hoverOnly dimension="62 x 15" />
-          </a>
+          </Link>
         </nav>
       </header>
 
@@ -116,12 +117,12 @@ export default function Home() {
 
           {/* CTA Button */}
           <div className="mt-7 sm:mt-8">
-            <a
-              href="#agent"
+            <Link
+              href="/register"
               className="inline-flex items-center justify-center bg-[#171717] text-[#f6f4ef] px-6 sm:px-7 py-3 sm:py-3.5 text-xs sm:text-[13px] font-mono tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm"
             >
               Meet your agent &rarr;
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -158,12 +159,12 @@ export default function Home() {
 
             {/* Action Link */}
             <div className="pt-2 sm:pt-3">
-              <a
-                href="#agent"
+              <Link
+                href="/register"
                 className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-[13px] tracking-[0.14em] text-[#171717] font-medium border-b border-[#171717] pb-0.5 hover:opacity-70 transition-opacity"
               >
                 Meet your agent &rarr;
-              </a>
+              </Link>
             </div>
           </div>
 
