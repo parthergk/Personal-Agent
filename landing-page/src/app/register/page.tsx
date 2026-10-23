@@ -130,18 +130,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="relative isolate min-h-svh w-full overflow-x-hidden bg-[#f6f4ef] text-[#171717] flex flex-col justify-between">
-      {/* Decorative background matching landing page */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-[position:35%_top] sm:bg-[position:top_center]"
-        style={{
-          backgroundImage: "url('/bg.webp')",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-        }}
-      />
-
+    <main className="relative min-h-svh w-full overflow-x-hidden bg-[#f6f4ef] text-[#171717] flex flex-col justify-between">
       {/* ─── TOP NAVIGATION ─── */}
       <header className="w-full max-w-[1360px] mx-auto px-5 sm:px-12 pt-6 sm:pt-10 flex items-center justify-between text-[11px] sm:text-xs font-mono tracking-[0.16em] sm:tracking-[0.25em] font-medium uppercase z-20">
         <div className="flex items-center gap-2">
@@ -179,25 +168,25 @@ export default function RegisterPage() {
           <div className="w-full flex flex-col items-center">
             {/* Heading */}
             <h1 className="font-serif text-4xl sm:text-5xl font-normal leading-tight tracking-tight text-[#171717]">
-              Sign in to VXYAK
+              Register in to Vxyak
             </h1>
 
             {/* Subheading */}
             <p className="mt-3 font-mono text-xs sm:text-[13px] tracking-wide text-neutral-600">
-              We&apos;ll send you a code to sign in.
+              Enter your phone number to receive an OTP.
             </p>
 
             {/* Form */}
             <form onSubmit={handleSendCode} className="w-full max-w-[390px] mt-8 flex flex-col items-center">
               {/* Phone input with country selector */}
               <div className="relative w-full">
-                <div className="flex items-center w-full bg-white border border-neutral-300 rounded-lg px-3 py-2.5 shadow-xs focus-within:border-[#171717] focus-within:ring-1 focus-within:ring-[#171717] transition-all">
+                <div className="flex items-center w-full bg-white border border-neutral-300 px-3 py-2 shadow-xs focus-within:border-[#171717] focus-within:ring-1 focus-within:ring-[#171717] transition-all">
                   {/* Country dropdown trigger */}
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center gap-1.5 cursor-pointer py-0.5 px-1 rounded hover:bg-neutral-100 transition-colors select-none"
+                      className="flex items-center gap-1.5 cursor-pointer py-0.5 px-1 hover:bg-neutral-100 transition-colors select-none"
                       aria-label="Select Country"
                     >
                       <span className="text-lg leading-none" role="img" aria-label={selectedCountry.name}>
@@ -217,7 +206,7 @@ export default function RegisterPage() {
 
                     {/* Country select popover */}
                     {isDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-neutral-200 rounded-lg shadow-lg py-1.5 z-50 text-left max-h-60 overflow-y-auto">
+                      <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-neutral-200 shadow-lg py-1.5 z-50 text-left max-h-60 overflow-y-auto">
                         {COUNTRIES.map((country) => (
                           <button
                             key={country.code}
@@ -272,15 +261,11 @@ export default function RegisterPage() {
 
               {/* Legal disclaimer */}
               <p className="w-full mt-5 mb-6 text-left font-mono text-[11px] leading-relaxed text-neutral-600">
-                By clicking the &ldquo;Send Code&rdquo; button, I agree to VXYAK&apos;s{" "}
+                Click on the &ldquo;Send Code&rdquo; button, I agree to VXYAK&apos;s{" "}
                 <Link href="#terms" className="underline underline-offset-2 hover:text-[#171717]">
                   Terms of Service
                 </Link>{" "}
-                and{" "}
-                <Link href="#sms" className="underline underline-offset-2 hover:text-[#171717]">
-                  SMS Terms
-                </Link>
-                , and acknowledge the{" "}
+                and acknowledge the{" "}
                 <Link href="#privacy" className="underline underline-offset-2 hover:text-[#171717]">
                   Privacy Policy
                 </Link>
@@ -291,7 +276,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 px-6 rounded-lg bg-[#171717] text-[#f6f4ef] font-mono text-xs sm:text-[13px] tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
+                className="w-full py-3.5 px-6 bg-[#171717] text-[#f6f4ef] font-mono text-xs sm:text-[13px] tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
               >
                 {isLoading ? (
                   <>
@@ -313,11 +298,8 @@ export default function RegisterPage() {
         ) : verifiedSuccess ? (
           /* Verification Success Screen */
           <div className="w-full max-w-[390px] flex flex-col items-center">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mb-4 text-xl">
-              ✓
-            </div>
             <h1 className="font-serif text-3xl sm:text-4xl font-normal leading-tight tracking-tight text-[#171717]">
-              Welcome to VXYAK
+              Welcome to Vxyak
             </h1>
             <p className="mt-3 font-mono text-xs sm:text-[13px] tracking-wide text-neutral-600">
               Your agent has been connected to {fullPhoneNumber}.
@@ -325,9 +307,9 @@ export default function RegisterPage() {
             <div className="mt-8 w-full">
               <Link
                 href="/"
-                className="w-full py-3.5 px-6 rounded-lg bg-[#171717] text-[#f6f4ef] font-mono text-xs sm:text-[13px] tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm inline-flex items-center justify-center gap-2 select-none"
+                className="w-full py-3.5 px-6 bg-[#171717] text-[#f6f4ef] font-mono text-xs sm:text-[13px] tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm inline-flex items-center justify-center gap-2 select-none"
               >
-                Go to Dashboard &rarr;
+                Go to WhatsApp &rarr;
               </Link>
             </div>
           </div>
@@ -342,13 +324,13 @@ export default function RegisterPage() {
               We sent a code to <span className="font-semibold text-neutral-800">{fullPhoneNumber}</span>
             </p>
 
-            {statusMessage && (
-              <div className="mt-4 px-3 py-2 bg-neutral-200/60 rounded text-[11px] font-mono text-neutral-800">
+            {/* {statusMessage && (
+              <div className="mt-4 px-3 py-2 bg-neutral-200/60 text-[11px] font-mono text-neutral-800">
                 {statusMessage}
               </div>
-            )}
+            )} */}
 
-            <form onSubmit={handleVerifyOtp} className="w-full mt-6 flex flex-col items-center">
+            <form onSubmit={handleVerifyOtp} className="w-full mt-4 flex flex-col items-center">
               {/* 6 Digit Inputs */}
               <div className="flex items-center justify-between gap-2 w-full my-4">
                 {otp.map((digit, idx) => (
@@ -361,7 +343,7 @@ export default function RegisterPage() {
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    className="w-12 h-13 text-center font-mono text-lg font-medium border border-neutral-300 rounded-lg bg-white focus:border-[#171717] focus:ring-1 focus:ring-[#171717] outline-none transition-all shadow-xs"
+                    className="w-11 h-11 text-center font-mono text-lg font-medium border border-neutral-300 bg-white focus:border-[#171717] focus:ring-1 focus:ring-[#171717] outline-none transition-all shadow-xs"
                     autoFocus={idx === 0}
                   />
                 ))}
@@ -377,7 +359,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full mt-3 py-3.5 px-6 rounded-lg bg-[#171717] text-[#f6f4ef] font-mono text-xs sm:text-[13px] tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
+                className="w-full mt-3 py-3.5 px-6 bg-[#171717] text-[#f6f4ef] font-mono text-xs sm:text-[13px] tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
               >
                 {isLoading ? "Verifying..." : "Verify & Continue \u2192"}
               </button>
@@ -408,6 +390,7 @@ export default function RegisterPage() {
           </div>
         )}
       </section>
+
 
       {/* ─── FOOTER ─── */}
       <footer className="w-full max-w-[1360px] mx-auto px-6 sm:px-12 mt-8 md:mt-6 font-mono text-[10px] sm:text-[11px] tracking-wider text-neutral-600">

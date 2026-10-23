@@ -20,3 +20,18 @@ async def chat(request: ChatRequest):
     return {
         "response": response
     }
+
+
+class SendOtpRequest(BaseModel):
+    phone: str
+
+
+@app.post("/send-otp")
+async def send_otp(request: SendOtpRequest):
+    return {
+        "success": True,
+        "message": "Verification code sent successfully",
+        "dummy_code": "123456",
+        "phone": request.phone
+    }
+
