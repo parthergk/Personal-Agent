@@ -30,7 +30,7 @@ export default function Home() {
 
             {/* Subtitle */}
             <span className="text-neutral-500 font-normal tracking-[0.16em] sm:tracking-[0.25em]">
-              / PERSONAL AGENT
+              / AGENT
             </span>
           </a>
         </div>
