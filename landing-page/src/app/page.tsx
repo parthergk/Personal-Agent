@@ -22,10 +22,10 @@ export default function Home() {
             href="/"
             className="group relative inline-flex items-center gap-2 select-none"
           >
-            {/* MUSE with selection box */}
+            {/* VXYAK with selection box */}
             <span className="relative inline-flex items-center justify-center px-1.5 py-0.5">
-              <span>MUSE</span>
-              <CornerBox hoverOnly dimension="51 x 15" />
+              <span>VXYAK</span>
+              <CornerBox hoverOnly dimension="58 x 15" />
             </span>
 
             {/* Subtitle */}
@@ -142,10 +142,7 @@ export default function Home() {
             </h2>
 
             <p className="font-mono text-xs sm:text-[13px] tracking-wide text-neutral-600 leading-relaxed max-w-lg">
-              {/* MUSE understands your context and helps you move
-              through everyday tasks — from organizing plans to
-              handling the busywork. */}
-              MUSE helps you organize plans, remember what matters,
+              VXYAK helps you organize plans, remember what matters,
               and take care of everyday tasks — all through a
               simple conversation.
             </p>
@@ -195,7 +192,7 @@ export default function Home() {
       <footer className="w-full max-w-[1360px] mx-auto px-6 sm:px-12 mt-8 md:mt-6 font-mono text-[10px] sm:text-[11px] tracking-wider text-neutral-600">
         <div className="w-full pt-4 pb-6 flex flex-col  sm:flex-row item-start sm:items-center justify-between gap-2 sm:gap-4  border-t border-neutral-500/50">
           <div>
-            &copy; 2026 Muse.
+            &copy; 2026 Vxyak.
           </div>
           <div className="flex items-center gap-3">
             <a href="#privacy" className="hover:opacity-75 transition-opacity">

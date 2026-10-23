@@ -19,7 +19,7 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
-  title: "MUSE — Personal AI Agent",
+  title: "VXYAK — Personal AI Agent",
   description: "Your world, in quiet sync. Think less about the busywork. Focus on what matters.",
 };
 
