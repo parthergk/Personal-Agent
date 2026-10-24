@@ -1,14 +1,12 @@
-import getMsg from "./getMsg.js";
+import getMsg, { IncomingMessage } from "./getMsg.js";
 import fs from "fs";
-
 import {
   makeWASocket,
-  useMultiFileAuthState,
+  useMultiFileAuthState
 } from "baileys";
-
 import QRCode from "qrcode";
 
-async function askAgent(text) {
+async function askAgent(msgPayload: IncomingMessage): Promise<{type: string, message: string, path: string}> {
   try {
     const response = await fetch("http://127.0.0.1:8000/chat", {
       method: "POST",
@@ -16,25 +14,25 @@ async function askAgent(text) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        message: text,
+        message: msgPayload,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      throw new Error(`${response} HTTP: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as { response: {type: string, message: string, path: string} };
 
     return data.response;
   } catch (error) {
     console.error(error);
 
-    return "Agent is currently unavailable.";
+    return {type: "text", message: "Agent is currently unavailable.", path: ""};
   }
 }
 
-async function connect() {
+async function connect(): Promise<void> {
   const { state, saveCreds } = await useMultiFileAuthState("auth");
 
   const sock = makeWASocket({
@@ -80,42 +78,47 @@ async function connect() {
 
       const myJid = sock.user?.id ? sock.user.id.replace(/:.*@/, "@") : "";
 
-      if (msg.key.remoteJidAlt !== myJid) return;
-
-      const text = await getMsg(msg, sock)
+      if ((msg.key as any).remoteJidAlt !== myJid) return;
+      console.log("Message:", msg);
       
-      if (!text.trim()) return;
+      const msgResponse = await getMsg(msg, sock);
+      
+      if (!msgResponse) return;
+      if (msgResponse.type === "text" && (!msgResponse.caption || !msgResponse.caption.trim())) return;
 
-      console.log("📩 Command:", text);
+      console.log("📩 Command Payload:", JSON.stringify(msgResponse));
 
       const chatId = msg.key.remoteJid;
+      if (!chatId) return;
 
-      const response = await askAgent(text);
-
-      // sending response back to user 
-      const imageRegex = /\[SEND_IMAGE:\s*(.*?)\]/i;
-      const match = response.match(imageRegex);
+      const response = await askAgent(msgResponse);
+      console.log("llm response after the processing", response);
       
-      if (match) {
-        const imagePath = match[1].trim();
-        console.log("Image path: ", imagePath);
-        
-        const cleanText = response.replace(imageRegex, "").trim();
+      // sending response back to user       
+      if (response.type === "image") {
+        const imagePath = response.path;
+        const cleanText = response.message;
         
         if (fs.existsSync(imagePath)) {
           await sock.sendMessage(chatId, {
             image: { url: imagePath },
             caption: cleanText || undefined
           });
+        } 
+      } else if (response.type === "video") {
+          const videoPath = response.path;
+          const cleanText = response.message;
+
+          if (fs.existsSync(videoPath)) {
+            await sock.sendMessage(chatId, {
+              video: {url: videoPath},
+              caption: cleanText || undefined
+            })
+          }
         } else {
           await sock.sendMessage(chatId, {
-            text: `Image file not found at path: ${imagePath}\n\n${response}`,
+            text: response.message
           });
-        }
-      } else {
-        await sock.sendMessage(chatId, {
-          text: response,
-        });
       }
     } catch (error) {
       console.error("Message processing error:", error);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import CornerBox from "@/components/CornerBox";
 
@@ -23,21 +23,35 @@ const COUNTRIES: Country[] = [
   { name: "Australia", code: "AU", dialCode: "+61", flag: "🇦🇺", placeholder: "412 345 678" },
 ];
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export default function RegisterPage() {
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState<"phone" | "otp">("phone");
+  const [step, setStep] = useState<"phone" | "otp" | "already_registered">("phone");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpError, setOtpError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [verifiedSuccess, setVerifiedSuccess] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
   const fullPhoneNumber = `${selectedCountry.dialCode} ${phoneNumber.trim()}`;
 
-  const handleSendCode = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 60-second cooldown timer for Resend code
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const interval = setInterval(() => {
+      setCooldownSeconds((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownSeconds]);
+
+  const handleSendCode = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (cooldownSeconds > 0) return;
+
     setOtpError("");
     setStatusMessage("");
 
@@ -50,24 +64,42 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/send-otp", {
+      // Direct call to FastAPI /register
+      const response = await fetch(`${API_BASE_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: fullPhoneNumber }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
+      // Case 1: User already registered and active
+      if (data.already_registered) {
+        setStep("already_registered");
+        return;
+      }
+
+      // Case 2: Cooldown active
+      if (data.cooldown) {
+        setCooldownSeconds(data.remaining_seconds || 60);
+        setOtpError(data.message || `Please wait before requesting a new code.`);
+        return;
+      }
+
+      // Case 3: Success
       if (response.ok && data.success) {
-        setStatusMessage(`Code sent to ${fullPhoneNumber}. (Demo OTP: ${data.dummyCode || "123456"})`);
         setStep("otp");
+        setCooldownSeconds(60);
+        if (data.dummy_code) {
+          setStatusMessage(`Verification code sent. (Demo code: ${data.dummy_code})`);
+        } else {
+          setStatusMessage(`Verification code sent to your WhatsApp number.`);
+        }
       } else {
-        setOtpError(data.error || "Failed to send code. Please try again.");
+        setOtpError(data.detail || data.error || data.message || "Failed to send verification code. Please try again.");
       }
     } catch {
-      // Fallback for offline/local dummy behavior
-      setStatusMessage(`Code sent to ${fullPhoneNumber}. (Demo OTP: 123456)`);
-      setStep("otp");
+      setOtpError("Unable to reach verification service at " + API_BASE_URL + ". Please ensure FastAPI is running.");
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +139,7 @@ export default function RegisterPage() {
     }
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const enteredCode = otp.join("");
     if (enteredCode.length < 6) {
@@ -118,16 +150,28 @@ export default function RegisterPage() {
     setIsLoading(true);
     setOtpError("");
 
-    setTimeout(() => {
-      setIsLoading(false);
-      // Accept dummy code 123456 or any 6 digits for testing
-      if (enteredCode === "123456" || enteredCode.length === 6) {
+    try {
+      // Direct call to FastAPI /verify-otp
+      const response = await fetch(`${API_BASE_URL}/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: fullPhoneNumber, otp: enteredCode }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data.success) {
         setVerifiedSuccess(true);
       } else {
-        setOtpError("Invalid code. Please enter the demo code 123456.");
+        setOtpError(data.detail || data.error || data.message || "Invalid or expired verification code.");
       }
-    }, 600);
+    } catch {
+      setOtpError("Network error: Unable to verify code with " + API_BASE_URL + ". Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
 
   return (
     <main className="relative min-h-svh w-full overflow-x-hidden bg-[#f6f4ef] text-[#171717] flex flex-col justify-between">
@@ -295,6 +339,37 @@ export default function RegisterPage() {
               </button>
             </form>
           </div>
+        ) : step === "already_registered" ? (
+          /* User Already Registered Screen */
+          <div className="w-full max-w-[390px] flex flex-col items-center">
+            <h1 className="font-serif text-3xl sm:text-4xl font-normal leading-tight tracking-tight text-[#171717]">
+              Already Registered
+            </h1>
+            <p className="mt-3 font-mono text-xs sm:text-[13px] tracking-wide text-neutral-600 leading-relaxed">
+              Your account for <span className="font-semibold text-neutral-800">{fullPhoneNumber}</span> is already active.
+            </p>
+            <div className="mt-8 w-full flex flex-col gap-3">
+              <a
+                href="https://wa.me"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 px-6 bg-[#171717] text-[#f6f4ef] font-mono text-xs sm:text-[13px] tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm inline-flex items-center justify-center gap-2 select-none"
+              >
+                Open WhatsApp &rarr;
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("phone");
+                  setPhoneNumber("");
+                  setOtpError("");
+                }}
+                className="w-full py-3 px-6 border border-neutral-300 text-neutral-700 font-mono text-xs hover:bg-neutral-100 transition duration-200 cursor-pointer select-none"
+              >
+                Use a different number
+              </button>
+            </div>
+          </div>
         ) : verifiedSuccess ? (
           /* Verification Success Screen */
           <div className="w-full max-w-[390px] flex flex-col items-center">
@@ -305,12 +380,14 @@ export default function RegisterPage() {
               Your agent has been connected to {fullPhoneNumber}.
             </p>
             <div className="mt-8 w-full">
-              <Link
-                href="/"
+              <a
+                href="https://wa.me"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full py-3.5 px-6 bg-[#171717] text-[#f6f4ef] font-mono text-xs sm:text-[13px] tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm inline-flex items-center justify-center gap-2 select-none"
               >
                 Go to WhatsApp &rarr;
-              </Link>
+              </a>
             </div>
           </div>
         ) : (
@@ -324,11 +401,11 @@ export default function RegisterPage() {
               We sent a code to <span className="font-semibold text-neutral-800">{fullPhoneNumber}</span>
             </p>
 
-            {/* {statusMessage && (
-              <div className="mt-4 px-3 py-2 bg-neutral-200/60 text-[11px] font-mono text-neutral-800">
+            {statusMessage && (
+              <div className="mt-3 px-3 py-1.5 bg-neutral-200/60 text-[11px] font-mono text-neutral-800">
                 {statusMessage}
               </div>
-            )} */}
+            )}
 
             <form onSubmit={handleVerifyOtp} className="w-full mt-4 flex flex-col items-center">
               {/* 6 Digit Inputs */}
@@ -361,17 +438,31 @@ export default function RegisterPage() {
                 disabled={isLoading}
                 className="w-full mt-3 py-3.5 px-6 bg-[#171717] text-[#f6f4ef] font-mono text-xs sm:text-[13px] tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
               >
-                {isLoading ? "Verifying..." : "Verify & Continue \u2192"}
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-[#f6f4ef]" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                    <span>Verifying...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Verify & Continue</span>
+                    <span>&rarr;</span>
+                  </>
+                )}
               </button>
 
               {/* Resend and Edit options */}
               <div className="mt-6 flex items-center justify-between w-full font-mono text-[11px] text-neutral-600">
                 <button
                   type="button"
-                  onClick={handleSendCode}
-                  className="hover:text-[#171717] underline underline-offset-2 cursor-pointer"
+                  onClick={() => handleSendCode()}
+                  disabled={cooldownSeconds > 0 || isLoading}
+                  className="hover:text-[#171717] underline underline-offset-2 cursor-pointer disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
                 >
-                  Resend code
+                  {cooldownSeconds > 0 ? `Resend code (${cooldownSeconds}s)` : "Resend code"}
                 </button>
 
                 <button
@@ -390,7 +481,6 @@ export default function RegisterPage() {
           </div>
         )}
       </section>
-
 
       {/* ─── FOOTER ─── */}
       <footer className="w-full max-w-[1360px] mx-auto px-6 sm:px-12 mt-8 md:mt-6 font-mono text-[10px] sm:text-[11px] tracking-wider text-neutral-600">
