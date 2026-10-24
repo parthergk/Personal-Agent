@@ -24,12 +24,14 @@ Thumbs.db
 *.log
 
 # WhatsApp Session / Baileys Authentication Data
-*auth*
-*session*
-!api/db/session.py
 baileys_auth_info/
 session/
 auth_info_multi_device/
+*auth_info*
+whatsapp/*auth*
+!landing-page/**
+!api/db/session.py
+
 
 qr.png
 
