@@ -23,6 +23,8 @@ const COUNTRIES: Country[] = [
   { name: "Australia", code: "AU", dialCode: "+61", flag: "🇦🇺", placeholder: "412 345 678" },
 ];
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export default function RegisterPage() {
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -62,7 +64,8 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/send-otp", {
+      // Direct call to FastAPI /register
+      const response = await fetch(`${API_BASE_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: fullPhoneNumber }),
@@ -93,10 +96,10 @@ export default function RegisterPage() {
           setStatusMessage(`Verification code sent to your WhatsApp number.`);
         }
       } else {
-        setOtpError(data.error || data.message || "Failed to send verification code. Please try again.");
+        setOtpError(data.detail || data.error || data.message || "Failed to send verification code. Please try again.");
       }
     } catch {
-      setOtpError("Unable to reach verification service. Please verify your connection.");
+      setOtpError("Unable to reach verification service at " + API_BASE_URL + ". Please ensure FastAPI is running.");
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +151,8 @@ export default function RegisterPage() {
     setOtpError("");
 
     try {
-      const response = await fetch("/api/auth/verify-otp", {
+      // Direct call to FastAPI /verify-otp
+      const response = await fetch(`${API_BASE_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: fullPhoneNumber, otp: enteredCode }),
@@ -159,14 +163,15 @@ export default function RegisterPage() {
       if (response.ok && data.success) {
         setVerifiedSuccess(true);
       } else {
-        setOtpError(data.error || data.detail || data.message || "Invalid or expired verification code.");
+        setOtpError(data.detail || data.error || data.message || "Invalid or expired verification code.");
       }
     } catch {
-      setOtpError("Network error: Unable to verify code. Please try again.");
+      setOtpError("Network error: Unable to verify code with " + API_BASE_URL + ". Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <main className="relative min-h-svh w-full overflow-x-hidden bg-[#f6f4ef] text-[#171717] flex flex-col justify-between">
