@@ -366,6 +366,3 @@ async def verify_user_otp(request: VerifyOtpRequest, db: Session = Depends(get_d
             "is_active": user.is_active,
         },
     }
-
-
-
