@@ -18,6 +18,8 @@ from services import (
     get_msg,
     send_whatsapp_message,
     mark_as_read_and_typing,
+    get_otp,
+    verify_otp,
 )
 from db.session import Base, engine, get_db
 from db.models.user import User
@@ -53,8 +55,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory OTP store: phone -> {"otp": str, "expires_at": datetime, "attempts": int}
-OTP_STORE: dict[str, dict] = {}
 
 
 def normalize_phone(phone: str) -> str:
@@ -199,8 +199,14 @@ class VerifyOtpRequest(BaseModel):
 
 @app.post("/register")
 @app.post("/send-otp")
-async def register_or_send_otp(request: RegisterRequest):
-    """Initiates registration / sign-in by generating and sending an OTP to the given phone number."""
+async def register_or_send_otp(request: RegisterRequest, db: Session = Depends(get_db)):
+    """
+    1. Check user table:
+       - If user exists and is active: return "You are already registered"
+       - If user exists with same number but not active: send OTP
+       - If user does not exist: store user in DB with is_active=False and send OTP
+    2. Use otp_service to generate and store OTP.
+    """
     if not request.phone or len(request.phone.strip()) < 6:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -209,24 +215,51 @@ async def register_or_send_otp(request: RegisterRequest):
 
     normalized_phone = normalize_phone(request.phone)
 
-    # Generate 6-digit OTP
-    otp = f"{random.randint(100000, 999999)}"
+    # 1. Check user table
+    user = db.query(User).filter(User.phone == normalized_phone).first()
 
-    # Store in memory with 10-minute validity
-    expires_at = datetime.utcnow() + timedelta(minutes=10)
-    OTP_STORE[normalized_phone] = {
-        "otp": otp,
-        "expires_at": expires_at,
-        "attempts": 0,
-        "name": request.name,
-    }
+    # If user exists and is already active: return you are already registered
+    if user and user.is_active:
+        return {
+            "success": False,
+            "already_registered": True,
+            "message": "You are already registered",
+            "phone": normalized_phone,
+        }
 
-    # Optionally attempt to send via WhatsApp if service is configured
+    # If user exists but is not active: update name if provided, then send OTP
+    if user and not user.is_active:
+        if request.name:
+            user.name = request.name.strip()
+            user.updated_at = datetime.utcnow()
+            db.commit()
+            db.refresh(user)
+
+    # If user does not exist with the number: store initially in DB with is_active=False
+    if not user:
+        name_to_use = request.name.strip() if request.name else f"User {normalized_phone[-4:]}"
+        user = User(
+            phone=normalized_phone,
+            name=name_to_use,
+            timezone="Asia/Kolkata",
+            is_active=False,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        logger.info("Created inactive user %s pending OTP verification", normalized_phone)
+
+    # 2. Use otp_service to generate and store OTP
+    otp = await get_otp(normalized_phone)
+
+    # Dispatch OTP via WhatsApp if configured
     whatsapp_recipient = re.sub(r"\D", "", normalized_phone)
     try:
         await send_whatsapp_message(
             to=whatsapp_recipient,
-            message=f"Your Vxyak verification code is: {otp}. It is valid for 10 minutes.",
+            message=f"Your Vxyak verification code is: {otp}. It is valid for 5 minutes.",
         )
         logger.info("Sent WhatsApp verification OTP to %s", whatsapp_recipient)
     except Exception as e:
@@ -236,13 +269,15 @@ async def register_or_send_otp(request: RegisterRequest):
         "success": True,
         "message": "Verification code sent successfully",
         "phone": normalized_phone,
-        "dummy_code": "123456",  # Provided for development/testing convenience
+        "dummy_code": "123456",  # Useful for testing/dev
     }
 
 
 @app.post("/verify-otp")
-async def verify_otp(request: VerifyOtpRequest, db: Session = Depends(get_db)):
-    """Verifies OTP and registers or activates the user in the database."""
+async def verify_user_otp(request: VerifyOtpRequest, db: Session = Depends(get_db)):
+    """
+    Verifies OTP via otp_service and activates the user in the database.
+    """
     if not request.phone or not request.otp:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -252,85 +287,40 @@ async def verify_otp(request: VerifyOtpRequest, db: Session = Depends(get_db)):
     normalized_phone = normalize_phone(request.phone)
     entered_otp = request.otp.strip()
 
-    # Universal dev code bypass or validate against stored OTP
-    is_valid = False
-    if entered_otp == "123456":
-        is_valid = True
-    else:
-        record = OTP_STORE.get(normalized_phone)
-        if not record:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No verification code found for this phone number. Please request a new code.",
-            )
-
-        if datetime.utcnow() > record["expires_at"]:
-            OTP_STORE.pop(normalized_phone, None)
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Verification code has expired. Please request a new one.",
-            )
-
-        if record["attempts"] >= 5:
-            OTP_STORE.pop(normalized_phone, None)
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Too many incorrect attempts. Please request a new code.",
-            )
-
-        if record["otp"] == entered_otp:
-            is_valid = True
-        else:
-            record["attempts"] += 1
-            remaining = 5 - record["attempts"]
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid verification code. {remaining} attempt(s) remaining.",
-            )
-
+    # 1. Verify OTP with otp_service
+    is_valid = await verify_otp(normalized_phone, entered_otp)
     if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid verification code.",
+            detail="Invalid or expired verification code",
         )
 
-    # Check or create user in SQLite / PostgreSQL DB
+    # 2. Activate user in DB
     user = db.query(User).filter(User.phone == normalized_phone).first()
-
-    name_to_use = (
-        request.name.strip()
-        if request.name
-        else (OTP_STORE.get(normalized_phone, {}).get("name") or f"User {normalized_phone[-4:]}")
-    )
 
     if not user:
         user = User(
             phone=normalized_phone,
-            name=name_to_use,
+            name=request.name.strip() if request.name else f"User {normalized_phone[-4:]}",
             timezone="Asia/Kolkata",
             is_active=True,
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
         )
         db.add(user)
-        db.commit()
-        db.refresh(user)
-        logger.info("New user registered: %s (id: %s)", normalized_phone, user.id)
     else:
         user.is_active = True
         if request.name:
             user.name = request.name.strip()
         user.updated_at = datetime.utcnow()
-        db.commit()
-        db.refresh(user)
-        logger.info("Existing user verified: %s (id: %s)", normalized_phone, user.id)
 
-    # Clear OTP record upon successful verification
-    OTP_STORE.pop(normalized_phone, None)
+    db.commit()
+    db.refresh(user)
+    logger.info("User verified and activated: %s (id: %s)", normalized_phone, user.id)
 
     return {
         "success": True,
-        "message": "User verified and registered successfully",
+        "message": "User verified and activated successfully",
         "user": {
             "id": user.id,
             "phone": user.phone,
@@ -339,4 +329,5 @@ async def verify_otp(request: VerifyOtpRequest, db: Session = Depends(get_db)):
             "is_active": user.is_active,
         },
     }
+
 
