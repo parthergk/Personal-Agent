@@ -13,39 +13,31 @@ interfering with the FastAPI event loop running in the main thread.
 import os
 import asyncio
 import logging
-from dotenv import load_dotenv
-
 from db.models.reminder import Reminder
 from .whatsapp import send_whatsapp_message
 
-load_dotenv()
-
 logger = logging.getLogger(__name__)
-
-# The personal number that receives all reminder notifications.
-# Format: international digits only, e.g. 919876543210 (no +, no spaces).
-RECIPIENT_PHONE = os.getenv("RECIPIENT_PHONE_NUMBER")
-
 
 def send_reminder_via_whatsapp(reminder: Reminder) -> None:
     """
     Synchronous delivery handler — called from the APScheduler background thread.
 
     Formats the reminder as a WhatsApp text message and sends it to the
-    recipient stored on the reminder row (set at creation time from the
-    webhook sender number). Falls back to RECIPIENT_PHONE env var for
-    reminders created before this field was added.
+    recipient phone number obtained via the reminder.user relationship.
 
     Raises an exception on failure so that reminder_scheduler.py can
     mark the reminder as failed and retry on the next poll cycle.
     """
-    to_phone = getattr(reminder, "recipient_phone", None) or RECIPIENT_PHONE
+    user = getattr(reminder, "user", None)
+    to_phone = user.phone if user else None
 
     if not to_phone:
         raise RuntimeError(
-            "No recipient phone number available for reminder "
-            f"#{reminder.id}. Set RECIPIENT_PHONE_NUMBER in .env as fallback."
+            f"No recipient phone number available for reminder #{reminder.id} (user_id={getattr(reminder, 'user_id', None)})."
         )
+
+    # Normalize phone: ensure international digits format for WhatsApp API
+    to_phone = to_phone.lstrip("+").strip()
 
     # Build a user-friendly message body
     body = (

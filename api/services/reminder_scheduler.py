@@ -6,6 +6,7 @@ from typing import Optional, Callable
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 from sqlalchemy import or_, and_
+from sqlalchemy.orm import joinedload
 
 # Ensure parent directory is in sys.path for direct script execution
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -74,6 +75,7 @@ def process_due_reminders():
         # Eligible: status='pending' OR status='processing' with an expired lock (crash recovery)
         due_reminders = (
             db.query(Reminder)
+            .options(joinedload(Reminder.user))
             .filter(
                 Reminder.due_at <= now_utc,
                 Reminder.attempts < MAX_DELIVERY_ATTEMPTS,
