@@ -12,21 +12,10 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 api_key = os.getenv("SARVAM_API_KEY")
-sarvam_client: Optional[AsyncSarvamAI] = None
-if api_key:
-    sarvam_client = AsyncSarvamAI(api_subscription_key=api_key)
-else:
-    logger.warning("SARVAM_API_KEY is not configured. Audio transcription will be unavailable.")
+if not api_key:
+    raise RuntimeError("SARVAM_API_KEY is not configured")
 
-
-def get_sarvam_client() -> Optional[AsyncSarvamAI]:
-    global sarvam_client
-    if sarvam_client is not None:
-        return sarvam_client
-    key = os.getenv("SARVAM_API_KEY")
-    if key:
-        sarvam_client = AsyncSarvamAI(api_subscription_key=key)
-    return sarvam_client
+sarvam_client = AsyncSarvamAI(api_subscription_key=api_key)
 
 # Sarvam STT limits: max 25 MB per request
 MAX_AUDIO_SIZE_MB = 25
@@ -63,23 +52,13 @@ async def process_audio(path, mime_type: Optional[str]) -> IncomingMessage:
             caption=f"[Audio Error]: The audio file is too large ({size_mb:.1f} MB). Maximum allowed size is {MAX_AUDIO_SIZE_MB} MB. Please ask the user to send a shorter audio."
         )
 
-    client = get_sarvam_client()
-    if not client:
-        logger.warning("Audio transcription requested but SARVAM_API_KEY is not configured.")
-        return IncomingMessage(
-            type="audio",
-            path=path,
-            mime_type=mime_type,
-            caption="[Audio Error]: Audio transcription service is not configured. Please ask the user to type their message."
-        )
-
     last_error: Exception | None = None
 
     for attempt in range(1, MAX_RETRIES + 2):  # attempts: 1, 2, 3
         try:
             with open(path, "rb") as audio_file:
                 response = await asyncio.wait_for(
-                    client.speech_to_text.transcribe(
+                    sarvam_client.speech_to_text.transcribe(
                         file=audio_file,
                         model="saaras:v3",
                         mode="translit",
