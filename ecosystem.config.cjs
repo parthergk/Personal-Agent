@@ -4,7 +4,7 @@ module.exports = {
       name: "agent-api",
       cwd: "./api",
       script: "./venv/bin/uvicorn",
-      args: "main:app --host 127.0.0.1 --port 8000 --workers 2",
+      args: "main:app --host 127.0.0.1 --port 8000 --workers 1",
       interpreter: "none",
       watch: false,
       autorestart: true,
