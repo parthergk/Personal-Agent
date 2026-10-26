@@ -4,42 +4,24 @@ from typing import Optional
 from dotenv import load_dotenv
 from openai import OpenAI
 from db import qdrant_client
-from qdrant_client.models import PointStruct, Filter, FieldCondition, MatchValue, VectorParams, Distance, PayloadSchemaType
+from qdrant_client.models import PointStruct, Filter, FieldCondition, MatchValue
 
 load_dotenv()
 
 client = OpenAI()
 
-# Ensure the 'memories' collection exists in Qdrant and has index
-try:
-    collections = qdrant_client.get_collections().collections
-    existing_collections = [c.name for c in collections]
-    if "memories" not in existing_collections:
-        qdrant_client.create_collection(
-            collection_name="memories",
-            vectors_config=VectorParams(
-                size=1536,
-                distance=Distance.COSINE
-            )
-        )
-        qdrant_client.create_payload_index(
-            collection_name="memories",
-            field_name="memory_type",
-            field_schema=PayloadSchemaType.KEYWORD
-        )
-except Exception as e:
-    print(f"Failed to check/create 'memories' collection and index: {e}")
-
-
-def save_memory(memory_type: str, content: str, metadata: dict) -> str:
+def save_memory(user_id: int, memory_type: str, content: str, metadata: dict) -> str:
     """
-    Saves a memory point to the 'memories' Qdrant collection.
+    Saves a memory point to the 'memories' Qdrant collection for a specific user.
     """
+    if not user_id:
+        return "Error saving memory: 'user_id' is required."
+
     try:
         # Create text embedding representation using memory_type, title, category, and description
-        title = metadata.get("title", "")
-        category = metadata.get("category", "")
-        description = metadata.get("description", "")
+        title = metadata.get("title", "") if metadata else ""
+        category = metadata.get("category", "") if metadata else ""
+        description = metadata.get("description", "") if metadata else ""
         text_to_embed = f"Type: {memory_type}\nTitle: {title}\nCategory: {category}\nDescription: {description}"
         
         response = client.embeddings.create(
@@ -56,9 +38,10 @@ def save_memory(memory_type: str, content: str, metadata: dict) -> str:
                     id=point_id,
                     vector=vector,
                     payload={
+                        "user_id": user_id,
                         "memory_type": memory_type,
                         "content": content,
-                        "metadata": metadata
+                        "metadata": metadata or {}
                     }
                 )
             ]
@@ -68,10 +51,13 @@ def save_memory(memory_type: str, content: str, metadata: dict) -> str:
         return f"Error saving memory: {str(e)}"
 
 
-def search_memory(query: str, memory_type: Optional[str] = None) -> str:
+def search_memory(user_id: int, query: str, memory_type: Optional[str] = None) -> str:
     """
-    Searches the 'memories' collection using vector similarity.
+    Searches the 'memories' collection using vector similarity for a specific user.
     """
+    if not user_id:
+        return "Error searching memory: 'user_id' is required."
+
     try:
         response = client.embeddings.create(
             input=query,
@@ -79,17 +65,21 @@ def search_memory(query: str, memory_type: Optional[str] = None) -> str:
         )
         query_vector = response.data[0].embedding
         
-        # Build keyword filter
-        query_filter = None
-        if memory_type:
-            query_filter = Filter(
-                must=[
-                    FieldCondition(
-                        key="memory_type",
-                        match=MatchValue(value=memory_type)
-                    )
-                ]
+        # Build filter enforcing user isolation and optional memory_type
+        must_conditions = [
+            FieldCondition(
+                key="user_id",
+                match=MatchValue(value=user_id)
             )
+        ]
+        if memory_type:
+            must_conditions.append(
+                FieldCondition(
+                    key="memory_type",
+                    match=MatchValue(value=memory_type)
+                )
+            )
+        query_filter = Filter(must=must_conditions)
             
         try:
             search_results = qdrant_client.query_points(
@@ -107,9 +97,10 @@ def search_memory(query: str, memory_type: Optional[str] = None) -> str:
                 query=query_vector,
                 limit=20
             )
-            points = search_results.points
+            points = [p for p in search_results.points if p.payload.get("user_id") == user_id]
             if memory_type:
-                points = [p for p in points if p.payload.get("memory_type") == memory_type][:5]
+                points = [p for p in points if p.payload.get("memory_type") == memory_type]
+            points = points[:5]
         
         matches = []
         for point in points:

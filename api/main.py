@@ -21,6 +21,7 @@ from services import (
     verify_otp,
     clean_phone,
 )
+from db.setup import setup_qdrant
 from db.session import Base, engine, get_db
 from db.models.user import User
 
@@ -37,6 +38,11 @@ async def lifespan(app: FastAPI):
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         logger.warning("Could not auto-create tables: %s", e)
+    
+    try:
+        setup_qdrant()
+    except Exception as e:
+        logger.warning("Could not setup Qdrant collection: %s", e)
 
     # Start reminder scheduler on startup (every 5 seconds)
     start_scheduler(interval_seconds=5)
