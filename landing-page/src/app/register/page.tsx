@@ -25,6 +25,7 @@ const COUNTRIES: Country[] = [
 ];
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const WHATSAPP_BOT_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_BOT_NUMBER;
 
 export default function RegisterPage() {
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
@@ -381,7 +382,7 @@ export default function RegisterPage() {
             </p>
             <div className="mt-8 w-full">
               <a
-                href="https://wa.me"
+                href={`https://wa.me/${WHATSAPP_BOT_NUMBER}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-3.5 px-6 bg-[#171717] text-[#f6f4ef] font-mono text-xs sm:text-[13px] tracking-[0.14em] hover:bg-neutral-800 transition duration-200 shadow-sm inline-flex items-center justify-center gap-2 select-none"
