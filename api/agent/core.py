@@ -39,21 +39,22 @@ def _call_llm_parse(messages: list) -> object:
     )
 
 
-def _run_tool(name: str, args: dict, sender: str = None) -> str:
+def _run_tool(name: str, args: dict, user_id: int = None) -> str:
     """
     Dispatches a tool call synchronously — must be called via run_in_executor
     since save_memory / search_memory both do blocking network I/O (OpenAI + Qdrant).
-    sender is the WhatsApp phone number of the user who triggered the request;
-    it is forwarded to create_reminder so the scheduler knows who to notify.
+    user_id is the ID of the authenticated user who triggered the request.
     """
     if name == "save_memory":
         return save_memory(
+            user_id=user_id,
             memory_type=args.get("memory_type"),
             content=args.get("content"),
             metadata=args.get("metadata")
         )
     elif name == "search_memory":
         return search_memory(
+            user_id=user_id,
             query=args.get("query"),
             memory_type=args.get("memory_type")
         )
@@ -61,13 +62,13 @@ def _run_tool(name: str, args: dict, sender: str = None) -> str:
         return create_reminder(
             message=args.get("message"),
             due_at=args.get("due_at"),
-            recipient_phone=sender
+            user_id=user_id
         )
     else:
         return f"Unknown tool: {name}"
 
 
-async def process_message(message: IncomingMessage, sender: str = None) -> str:
+async def process_message(message: IncomingMessage, user_id: int = None) -> str:
     """
     Main entry point for handling incoming messages from the FastAPI app.
     All blocking SDK calls (OpenAI + Qdrant) are offloaded to a thread pool
@@ -90,10 +91,10 @@ async def process_message(message: IncomingMessage, sender: str = None) -> str:
 
     user_content_with_time = f"Current Time: {current_time}\nUser Message: {user_content}"
 
-    # Fetch persistent conversation history for this sender
+    # Fetch persistent conversation history for this user
     history = await loop.run_in_executor(
-        None, functools.partial(get_conversation_context, sender)
-    ) if sender else []
+        None, functools.partial(get_conversation_context, user_id)
+    ) if user_id else []
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -118,9 +119,9 @@ async def process_message(message: IncomingMessage, sender: str = None) -> str:
                 "personal memory assistant" in assistant_text.lower()
                 and "only help" in assistant_text.lower()
             )
-            if sender:
+            if user_id:
                 await loop.run_in_executor(
-                    None, functools.partial(add_conversation_turn, sender, user_content, assistant_text, is_out_of_scope)
+                    None, functools.partial(add_conversation_turn, user_id, user_content, assistant_text, is_out_of_scope)
                 )
 
             return {
@@ -135,7 +136,7 @@ async def process_message(message: IncomingMessage, sender: str = None) -> str:
             args = json.loads(tool_call.function.arguments)
 
             result = await loop.run_in_executor(
-                None, functools.partial(_run_tool, name, args, sender)
+                None, functools.partial(_run_tool, name, args, user_id)
             )
 
             messages.append({
@@ -152,10 +153,10 @@ async def process_message(message: IncomingMessage, sender: str = None) -> str:
         print("\n\nfinal response", parsed_response)
 
         # Persist conversation turn into context memory
-        if sender and parsed_response:
+        if user_id and parsed_response:
             assistant_summary = parsed_response.message or f"Completed action: {parsed_response.type}"
             await loop.run_in_executor(
-                None, functools.partial(add_conversation_turn, sender, user_content, assistant_summary, False)
+                None, functools.partial(add_conversation_turn, user_id, user_content, assistant_summary, False)
             )
 
         return parsed_response or ""

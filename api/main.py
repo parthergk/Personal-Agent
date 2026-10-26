@@ -151,7 +151,7 @@ async def receive_webhook(request: Request):
                     preprocess_response = await preprocess_message(incoming_msg)
 
                     # 3. Process with LLM Agent
-                    response = await process_message(preprocess_response, sender=sender)
+                    response = await process_message(preprocess_response, user_id=auth_user.get("user_id"))
 
                     # 4. Sending response back to user (matching whatsapp/index.ts)
                     res_type = getattr(response, "type", None) or (response.get("type") if isinstance(response, dict) else "text")
