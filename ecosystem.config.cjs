@@ -13,19 +13,6 @@ module.exports = {
       env: {
         NODE_ENV: "production"
       }
-    },
-    {
-      name: "agent-whatsapp",
-      cwd: "./whatsapp",
-      script: "dist/index.js",
-      interpreter: "node",
-      watch: false,
-      autorestart: true,
-      max_restarts: 10,
-      restart_delay: 5000,
-      env: {
-        NODE_ENV: "production"
-      }
     }
   ]
 };

@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from agent import process_message, IncomingMessage
+from agent import process_message
 from processors import preprocess_message
 from services import (
     start_scheduler,
@@ -72,23 +72,6 @@ def normalize_phone(phone: str) -> str:
     if not cleaned.startswith("+"):
         cleaned = "+" + cleaned
     return cleaned
-
-
-
-class ChatRequest(BaseModel):
-    message: IncomingMessage
-
-
-@app.post("/chat")
-async def chat(request: ChatRequest):
-
-    preprocess_response = await preprocess_message(request.message)
-    logger.debug("preprocess response: %s", preprocess_response)
-    response = await process_message(preprocess_response)
-
-    return {
-        "response": response
-    }
 
 
 @app.get("/webhook")
