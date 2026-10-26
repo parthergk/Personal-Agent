@@ -18,29 +18,34 @@ jobs:
           host: ${{ secrets.AWS_EC2_IP }}
           username: ${{ secrets.AWS_EC2_USERNAME }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          port: ${{ secrets.AWS_EC2_PORT || 22 }}
+          script_stop: true
           script: |
-            cd agent
-            
-            # 1. Pull the latest code
-            git pull origin main
-            
-            # 2. Install dependencies & build WhatsApp client
-            cd whatsapp
-            npm install
-            npm run build
-            cd ..
-            
-            # 3. Install Python dependencies in the virtualenv
-            cd api
-            if [ -d ".venv" ]; then
-              ./.venv/bin/pip install -r requirements.txt
-            else
-              python3 -m venv .venv
-              ./.venv/bin/pip install --upgrade pip
-              ./.venv/bin/pip install -r requirements.txt
+            set -e
+
+            # Ensure common binary paths are in PATH (for pm2, node, python)
+            export PATH=$PATH:/usr/local/bin:/usr/bin
+            if [ -d "$HOME/.nvm" ]; then
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             fi
+
+            # Navigate to the project directory on EC2
+            cd ~/Personal-Agent
+
+            # 1. Pull the latest code
+            echo "Pulling latest code from main..."
+            git pull origin main
+
+            # 2. Update Python dependencies in the virtual environment
+            echo "Updating Python dependencies..."
+            cd api
+            ./venv/bin/pip install -r requirements.txt
             cd ..
-            
-            # 4. Start or reload all applications via PM2
-            pm2 startOrReload ecosystem.config.cjs --update-env
+
+            # 3. Reload or start only the FastAPI app via PM2
+            echo "Reloading FastAPI app via PM2..."
+            pm2 startOrReload ecosystem.config.cjs --only agent-api --update-env
             pm2 save
+
+            echo "Deployment completed successfully!"
