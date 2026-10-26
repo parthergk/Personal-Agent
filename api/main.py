@@ -20,6 +20,8 @@ from services import (
     get_otp,
     verify_otp,
     clean_phone,
+    verifying_authentication,
+    set_user_auth_cache,
 )
 from db.setup import setup_qdrant
 from db.session import Base, engine, get_db
@@ -134,6 +136,11 @@ async def receive_webhook(request: Request):
                     # Mark message as read (blue ticks) and show typing indicator immediately
                     if message_id:
                         await mark_as_read_and_typing(message_id)
+
+                    # Verify sender authentication (registered and verified)
+                    auth_user = await verifying_authentication(sender) if sender else None
+                    if not auth_user:
+                        continue
 
                     # 1. Parse raw webhook message into structured IncomingMessage (like getMsg.ts)
                     incoming_msg = await get_msg(message)
@@ -358,6 +365,12 @@ async def verify_user_otp(request: VerifyOtpRequest, db: Session = Depends(get_d
     db.commit()
     db.refresh(user)
     logger.info("User verified and activated: %s (id: %s)", normalized_phone, user.id)
+
+    # Immediately cache active auth status in Redis
+    try:
+        await set_user_auth_cache(user_id=user.id, phone=normalized_phone, is_active=True, name=user.name)
+    except Exception as e:
+        logger.warning("Could not set Redis auth cache on verification: %s", e)
 
     return {
         "success": True,

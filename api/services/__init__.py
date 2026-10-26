@@ -9,6 +9,7 @@ from .whatsapp import send_whatsapp_message, mark_as_read_and_typing
 from .get_msg import get_msg, save_media
 from .send_reminder import send_reminder_via_whatsapp
 from .otp_service import get_otp, verify_otp, check_cooldown, clean_phone
+from .auth_service import verifying_authentication, set_user_auth_cache
 
 __all__ = [
     "start_scheduler",
@@ -25,6 +26,8 @@ __all__ = [
     "verify_otp",
     "check_cooldown",
     "clean_phone",
+    "verifying_authentication",
+    "set_user_auth_cache",
 ]
 
 
