@@ -14,14 +14,17 @@ def create_reminder(
     message: str = None,
     due_at: str = None,
     timezone: str = "Asia/Kolkata",
-    recipient_phone: str = None,
+    user_id: int = None,
 ) -> str:
     """
     Creates a reminder and saves it using SQLAlchemy according to the Reminder model.
     Accepts message (or task), due_at (or remind_at ISO-8601 string), and timezone.
     due_at is converted and stored in UTC.
-    recipient_phone is the WhatsApp sender number to deliver the reminder to.
+    user_id is the ID of the user to schedule the reminder for.
     """
+    if not user_id:
+        return "Error creating reminder: 'user_id' is required."
+
     reminder_text = message
     if not reminder_text:
         return "Error creating reminder: 'message' is required."
@@ -50,10 +53,10 @@ def create_reminder(
         due_at_utc = dt.replace(tzinfo=None)
 
         db_reminder = Reminder(
+            user_id=user_id,
             message=reminder_text,
             due_at=due_at_utc,
             timezone=tz_name,
-            recipient_phone=recipient_phone,
             status="pending",
             attempts=0,
         )
