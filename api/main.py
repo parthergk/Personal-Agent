@@ -1,8 +1,7 @@
 import logging
 import os
-import random
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request, Response, status, Depends
@@ -76,7 +75,7 @@ class ChatRequest(BaseModel):
 async def chat(request: ChatRequest):
 
     preprocess_response = await preprocess_message(request.message)
-    print("\n\npreprocess response", preprocess_response)
+    logger.debug("preprocess response: %s", preprocess_response)
     response = await process_message(preprocess_response)
 
     return {
@@ -115,7 +114,7 @@ async def receive_webhook(request: Request):
     except Exception:
         data = await request.body()
 
-    print("\n[WhatsApp Webhook Received]:", data)
+    logger.debug("[WhatsApp Webhook Received]: %s", data)
 
     # Process individual messages if present in the payload
     if isinstance(data, dict):
@@ -294,7 +293,6 @@ async def register_or_send_otp(request: RegisterRequest, db: Session = Depends(g
     # Expose dummy code only outside production for testing convenience
     if not is_production:
         response_data["dummy_code"] = "123456"
-        response_data["debug_otp"] = otp
 
     return response_data
 

@@ -19,7 +19,7 @@ export default function Home() {
       {/* ─── TOP NAVIGATION ─── */}
       <header className="w-full max-w-[1360px] mx-auto px-5 sm:px-12 pt-6 sm:pt-10 flex items-center justify-between text-[11px] sm:text-xs font-mono tracking-[0.16em] sm:tracking-[0.25em] font-medium uppercase z-20">
         <div className="flex items-center gap-2">
-          <a
+          <Link
             href="/"
             className="group relative inline-flex items-center gap-2 select-none"
           >
@@ -33,7 +33,7 @@ export default function Home() {
             <span className="text-neutral-500 font-normal tracking-[0.16em] sm:tracking-[0.25em]">
               / AGENT
             </span>
-          </a>
+          </Link>
         </div>
         <nav className="flex items-center gap-5 sm:gap-12">
           <a

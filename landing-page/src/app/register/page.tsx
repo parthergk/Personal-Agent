@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import CornerBox from "@/components/CornerBox";
+import { MSG, safeApiError } from "@/lib/messages";
 
 interface Country {
   name: string;
@@ -57,14 +58,13 @@ export default function RegisterPage() {
 
     const cleanNum = phoneNumber.replace(/\D/g, "");
     if (!cleanNum || cleanNum.length < 5) {
-      setOtpError("Please enter a valid phone number.");
+      setOtpError(MSG.PHONE_INVALID);
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Direct call to FastAPI /register
       const response = await fetch(`${API_BASE_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,10 +79,15 @@ export default function RegisterPage() {
         return;
       }
 
-      // Case 2: Cooldown active
+      // Case 2: Cooldown active — show a safe, time-aware message
       if (data.cooldown) {
-        setCooldownSeconds(data.remaining_seconds || 60);
-        setOtpError(data.message || `Please wait before requesting a new code.`);
+        const remaining = typeof data.remaining_seconds === "number" ? data.remaining_seconds : 60;
+        setCooldownSeconds(remaining);
+        setOtpError(
+          remaining > 0
+            ? `Please wait ${remaining} seconds before requesting a new code.`
+            : MSG.OTP_SEND_COOLDOWN_GENERIC
+        );
         return;
       }
 
@@ -90,16 +95,12 @@ export default function RegisterPage() {
       if (response.ok && data.success) {
         setStep("otp");
         setCooldownSeconds(60);
-        if (data.dummy_code) {
-          setStatusMessage(`Verification code sent. (Demo code: ${data.dummy_code})`);
-        } else {
-          setStatusMessage(`Verification code sent to your WhatsApp number.`);
-        }
+        setStatusMessage(MSG.OTP_SEND_SUCCESS);
       } else {
-        setOtpError(data.detail || data.error || data.message || "Failed to send verification code. Please try again.");
+        setOtpError(safeApiError(data as Record<string, unknown>, MSG.OTP_SEND_FAILED));
       }
     } catch {
-      setOtpError("Unable to reach verification service at " + API_BASE_URL + ". Please ensure FastAPI is running.");
+      setOtpError(MSG.OTP_SEND_NETWORK);
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +144,7 @@ export default function RegisterPage() {
     e.preventDefault();
     const enteredCode = otp.join("");
     if (enteredCode.length < 6) {
-      setOtpError("Please enter all 6 digits.");
+      setOtpError(MSG.OTP_INCOMPLETE);
       return;
     }
 
@@ -151,7 +152,6 @@ export default function RegisterPage() {
     setOtpError("");
 
     try {
-      // Direct call to FastAPI /verify-otp
       const response = await fetch(`${API_BASE_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -163,10 +163,10 @@ export default function RegisterPage() {
       if (response.ok && data.success) {
         setVerifiedSuccess(true);
       } else {
-        setOtpError(data.detail || data.error || data.message || "Invalid or expired verification code.");
+        setOtpError(safeApiError(data as Record<string, unknown>, MSG.OTP_VERIFY_FAILED));
       }
     } catch {
-      setOtpError("Network error: Unable to verify code with " + API_BASE_URL + ". Please try again.");
+      setOtpError(MSG.OTP_VERIFY_NETWORK);
     } finally {
       setIsLoading(false);
     }
@@ -289,7 +289,7 @@ export default function RegisterPage() {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder={selectedCountry.placeholder}
-                    className="w-full bg-transparent font-mono text-xs sm:text-[13px] tracking-wider text-[#171717] outline-none placeholder:text-neutral-400"
+                    className="w-full bg-transparent font-mono text-xs sm:text-[13px] tracking-wider text-[#171717] outline-none placeholder:text-neutral-400 "
                     autoFocus
                     required
                   />
