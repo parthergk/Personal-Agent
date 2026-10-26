@@ -66,7 +66,7 @@ async def process_image(path, caption: Optional[str], mime_type: Optional[str]) 
     for attempt in range(1, MAX_RETRIES + 2):  # attempts: 1, 2, 3
         try:
             # Encode image to base64 (blocking I/O — run in thread to avoid blocking event loop)
-            base64_image = await asyncio.get_event_loop().run_in_executor(None, encode_image, path)
+            base64_image = await asyncio.get_running_loop().run_in_executor(None, encode_image, path)
 
             effective_mime = mime_type or "image/jpeg"
             user_content = [

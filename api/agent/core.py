@@ -74,7 +74,7 @@ async def process_message(message: IncomingMessage, user_id: int = None) -> str:
     All blocking SDK calls (OpenAI + Qdrant) are offloaded to a thread pool
     via run_in_executor so the asyncio event loop is never blocked.
     """
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     current_time = datetime.datetime.now().astimezone().isoformat(timespec='seconds')
 
     # Format incoming message context into a user prompt
