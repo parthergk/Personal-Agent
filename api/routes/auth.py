@@ -71,7 +71,7 @@ async def register_or_send_otp(request: RegisterRequest, db: Session = Depends(g
 
     # If user exists but is not active: update name if provided
     if user and not user.is_active:
-        if request.name:
+        if request.name and request.name.strip():
             user.name = request.name.strip()
             user.updated_at = datetime.utcnow()
             db.commit()
@@ -79,7 +79,8 @@ async def register_or_send_otp(request: RegisterRequest, db: Session = Depends(g
 
     # If user does not exist with the number: store initially in DB with is_active=False
     if not user:
-        name_to_use = request.name.strip() if request.name else f"User {normalized_phone[-4:]}"
+        clean_name = request.name.strip() if request.name else ""
+        name_to_use = clean_name if clean_name else f"User {normalized_phone[-4:]}"
         user = User(
             phone=normalized_phone,
             name=name_to_use,
@@ -168,9 +169,11 @@ async def verify_user_otp(request: VerifyOtpRequest, db: Session = Depends(get_d
     user = db.query(User).filter(User.phone == normalized_phone).first()
 
     if not user:
+        clean_name = request.name.strip() if request.name else ""
+        name_to_use = clean_name if clean_name else f"User {normalized_phone[-4:]}"
         user = User(
             phone=normalized_phone,
-            name=request.name.strip() if request.name else f"User {normalized_phone[-4:]}",
+            name=name_to_use,
             timezone="Asia/Kolkata",
             is_active=True,
             created_at=datetime.utcnow(),
@@ -179,7 +182,7 @@ async def verify_user_otp(request: VerifyOtpRequest, db: Session = Depends(get_d
         db.add(user)
     else:
         user.is_active = True
-        if request.name:
+        if request.name and request.name.strip():
             user.name = request.name.strip()
         user.updated_at = datetime.utcnow()
 

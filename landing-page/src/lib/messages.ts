@@ -13,7 +13,8 @@
 // ─── OTP / Registration flow ──────────────────────────────────────────────────
 
 export const MSG = {
-  // Phone step
+  // Phone & Name step
+  NAME_REQUIRED: "Please enter your name.",
   PHONE_INVALID: "Please enter a valid phone number.",
 
   // Sending OTP
