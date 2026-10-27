@@ -28,6 +28,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const WHATSAPP_BOT_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_BOT_NUMBER;
 
 export default function RegisterPage() {
+  const [name, setName] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -57,6 +58,12 @@ export default function RegisterPage() {
     setOtpError("");
     setStatusMessage("");
 
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setOtpError(MSG.NAME_REQUIRED);
+      return;
+    }
+
     const cleanNum = phoneNumber.replace(/\D/g, "");
     if (!cleanNum || cleanNum.length < 5) {
       setOtpError(MSG.PHONE_INVALID);
@@ -69,7 +76,7 @@ export default function RegisterPage() {
       const response = await fetch(`${API_BASE_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: fullPhoneNumber }),
+        body: JSON.stringify({ phone: fullPhoneNumber, name: trimmedName }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -156,7 +163,11 @@ export default function RegisterPage() {
       const response = await fetch(`${API_BASE_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: fullPhoneNumber, otp: enteredCode }),
+        body: JSON.stringify({
+          phone: fullPhoneNumber,
+          otp: enteredCode,
+          name: name.trim() || undefined,
+        }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -218,14 +229,31 @@ export default function RegisterPage() {
 
             {/* Subheading */}
             <p className="mt-3 font-mono text-xs sm:text-[13px] tracking-wide text-neutral-600">
-              Enter your phone number to receive an OTP.
+              Enter your name and phone number to receive an OTP.
             </p>
 
             {/* Form */}
             <form onSubmit={handleSendCode} className="w-full max-w-[390px] mt-8 flex flex-col items-center">
+              {/* Name input */}
+              <div className="relative w-full mb-3">
+                <div className="flex items-center h-11 w-full bg-white border border-neutral-300 px-3 shadow-xs focus-within:border-[#171717] focus-within:ring-1 focus-within:ring-[#171717] transition-all">
+                  <input
+                    type="text"
+                    id="name-input"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your name"
+                    autoComplete="name"
+                    className="w-full bg-transparent font-mono text-xs sm:text-[13px] tracking-wider text-[#171717] outline-none placeholder:text-neutral-400"
+                    autoFocus
+                    required
+                  />
+                </div>
+              </div>
+
               {/* Phone input with country selector */}
               <div className="relative w-full">
-                <div className="flex items-center w-full bg-white border border-neutral-300 px-3 py-2 shadow-xs focus-within:border-[#171717] focus-within:ring-1 focus-within:ring-[#171717] transition-all">
+                <div className="flex items-center h-11 w-full bg-white border border-neutral-300 px-3 shadow-xs focus-within:border-[#171717] focus-within:ring-1 focus-within:ring-[#171717] transition-all">
                   {/* Country dropdown trigger */}
                   <div className="relative">
                     <button
@@ -290,8 +318,7 @@ export default function RegisterPage() {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder={selectedCountry.placeholder}
-                    className="w-full bg-transparent font-mono text-xs sm:text-[13px] tracking-wider text-[#171717] outline-none placeholder:text-neutral-400 "
-                    autoFocus
+                    className="w-full bg-transparent font-mono text-xs sm:text-[13px] tracking-wider text-[#171717] outline-none placeholder:text-neutral-400"
                     required
                   />
                 </div>
@@ -375,7 +402,7 @@ export default function RegisterPage() {
           /* Verification Success Screen */
           <div className="w-full max-w-[390px] flex flex-col items-center">
             <h1 className="font-serif text-3xl sm:text-4xl font-normal leading-tight tracking-tight text-[#171717]">
-              Welcome to Vxyak
+              Welcome to Vxyak{name.trim() ? `, ${name.trim()}` : ""}
             </h1>
             <p className="mt-3 font-mono text-xs sm:text-[13px] tracking-wide text-neutral-600">
               Your agent has been connected to {fullPhoneNumber}.
