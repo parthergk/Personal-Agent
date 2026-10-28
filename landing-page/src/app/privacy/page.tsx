@@ -163,21 +163,6 @@ export default function PrivacyPage() {
           </section>
         </div>
 
-        {/* Back Link */}
-        <div className="mt-12 sm:mt-16 pt-6 border-t border-neutral-300 flex items-center justify-between font-mono text-xs sm:text-[13px]">
-          <Link
-            href="/"
-            className="text-neutral-600 hover:text-neutral-900 transition-colors inline-flex items-center gap-1.5"
-          >
-            &larr; Back to Home
-          </Link>
-          <Link
-            href="/terms"
-            className="text-neutral-600 hover:text-neutral-900 transition-colors inline-flex items-center gap-1.5"
-          >
-            Terms of Service &rarr;
-          </Link>
-        </div>
       </article>
 
       {/* ─── FOOTER ─── */}
