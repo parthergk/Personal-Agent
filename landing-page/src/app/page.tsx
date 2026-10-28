@@ -197,13 +197,13 @@ export default function Home() {
             &copy; 2026 Vxyak.
           </div>
           <div className="flex items-center gap-3">
-            <a href="#privacy" className="hover:opacity-75 transition-opacity">
+            <Link href="/privacy" className="hover:opacity-75 transition-opacity">
               Privacy Policy
-            </a>
+            </Link>
             <span>|</span>
-            <a href="#terms" className="hover:opacity-75 transition-opacity">
+            <Link href="/terms" className="hover:opacity-75 transition-opacity">
               Terms of Service
-            </a>
+            </Link>
           </div>
         </div>
       </footer>

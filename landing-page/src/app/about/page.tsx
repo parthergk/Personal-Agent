@@ -152,13 +152,13 @@ export default function AboutPage() {
         <div className="w-full pt-4 pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 border-t border-neutral-500/50">
           <div>&copy; 2026 Vxyak.</div>
           <div className="flex items-center gap-3">
-            <a href="#privacy" className="hover:opacity-75 transition-opacity">
+            <Link href="/privacy" className="hover:opacity-75 transition-opacity">
               Privacy Policy
-            </a>
+            </Link>
             <span>|</span>
-            <a href="#terms" className="hover:opacity-75 transition-opacity">
+            <Link href="/terms" className="hover:opacity-75 transition-opacity">
               Terms of Service
-            </a>
+            </Link>
           </div>
         </div>
       </footer>
