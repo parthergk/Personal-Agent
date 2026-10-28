@@ -51,10 +51,7 @@ export default function TermsPage() {
       <article className="w-full max-w-[820px] mx-auto px-5 sm:px-12 py-16 sm:py-24 flex flex-col">
         {/* Title & Effective Date */}
         <div className="mb-8 sm:mb-12">
-          <span className="font-mono text-[10px] sm:text-[11px] tracking-[0.24em] text-neutral-500 uppercase font-medium">
-            LEGAL / TERMS OF SERVICE
-          </span>
-          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal leading-[1.08] tracking-tight text-[#171717] mt-3">
+          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal leading-[1.08] tracking-tight text-[#171717]">
             Terms of Service
           </h1>
           <p className="font-mono text-xs text-neutral-500 mt-3 tracking-wide">
