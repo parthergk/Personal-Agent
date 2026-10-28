@@ -36,13 +36,13 @@ export default function Home() {
           </Link>
         </div>
         <nav className="flex items-center gap-5 sm:gap-12">
-          <a
-            href="#about"
+          <Link
+            href="/about"
             className="group relative inline-flex items-center justify-center px-1.5 py-0.5 select-none"
           >
             <span>ABOUT</span>
             <CornerBox hoverOnly dimension="58 x 15" />
-          </a>
+          </Link>
 
           <Link
             href="/register"
@@ -143,8 +143,8 @@ export default function Home() {
             </h2>
 
             <p className="font-mono text-xs sm:text-[13px] tracking-wide text-neutral-600 leading-relaxed max-w-lg">
-              VXYAK helps you organize plans, remember what matters,
-              and take care of everyday tasks — all through a
+              VXYAK helps you capture thoughts, remember what matters,
+              and stay on top of your day — all through a
               simple conversation.
             </p>
 
@@ -152,9 +152,9 @@ export default function Home() {
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 font-mono text-[11px] sm:text-xs text-neutral-700 tracking-wider">
               <span>Less mental clutter</span>
               <span className="hidden sm:inline text-neutral-400">|</span>
-              <span>More clarity</span>
+              <span>Instant recall</span>
               <span className="hidden sm:inline text-neutral-400">|</span>
-              <span>Life in better balance</span>
+              <span>Life in quiet sync</span>
             </div>
 
             {/* Action Link */}
@@ -177,13 +177,14 @@ export default function Home() {
             </div>
 
             <div>
-              <p className="leading-relaxed">&ldquo;Help me plan my week.&rdquo;</p>
+              <p className="leading-relaxed">&ldquo;Where did I save that</p>
+              <p className="leading-relaxed">note from last week?&rdquo;</p>
               <div className="w-12 h-[1px] bg-neutral-400/80 mt-5" />
             </div>
 
             <div>
-              <p className="leading-relaxed">&ldquo;Take care of the little</p>
-              <p className="leading-relaxed">things.&rdquo;</p>
+              <p className="leading-relaxed">&ldquo;Hold onto this thought</p>
+              <p className="leading-relaxed">for me.&rdquo;</p>
             </div>
           </div>
         </div>
@@ -196,13 +197,13 @@ export default function Home() {
             &copy; 2026 Vxyak.
           </div>
           <div className="flex items-center gap-3">
-            <a href="#privacy" className="hover:opacity-75 transition-opacity">
+            <Link href="/privacy" className="hover:opacity-75 transition-opacity">
               Privacy Policy
-            </a>
+            </Link>
             <span>|</span>
-            <a href="#terms" className="hover:opacity-75 transition-opacity">
+            <Link href="/terms" className="hover:opacity-75 transition-opacity">
               Terms of Service
-            </a>
+            </Link>
           </div>
         </div>
       </footer>
