@@ -88,7 +88,7 @@ export default function AboutPage() {
               <CornerBox hoverOnly dimension="540 x 405" />
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-200/50">
                 <Image
-                  src="/about.jpg"
+                  src="/about.webp"
                   alt="Minimalist workspace with open linen notebook and pen in soft natural sunlight"
                   fill
                   sizes="(max-width: 1024px) 100vw, 540px"
