@@ -36,13 +36,13 @@ export default function Home() {
           </Link>
         </div>
         <nav className="flex items-center gap-5 sm:gap-12">
-          <a
-            href="#about"
+          <Link
+            href="/about"
             className="group relative inline-flex items-center justify-center px-1.5 py-0.5 select-none"
           >
             <span>ABOUT</span>
             <CornerBox hoverOnly dimension="58 x 15" />
-          </a>
+          </Link>
 
           <Link
             href="/register"
