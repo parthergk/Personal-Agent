@@ -19,7 +19,7 @@ export default function Home() {
       {/* ─── TOP NAVIGATION ─── */}
       <header className="w-full max-w-[1360px] mx-auto px-5 sm:px-12 pt-6 sm:pt-10 flex items-center justify-between text-[11px] sm:text-xs font-mono tracking-[0.16em] sm:tracking-[0.25em] font-medium uppercase z-20">
         <div className="flex items-center gap-2">
-          <a
+          <Link
             href="/"
             className="group relative inline-flex items-center gap-2 select-none"
           >
@@ -33,7 +33,7 @@ export default function Home() {
             <span className="text-neutral-500 font-normal tracking-[0.16em] sm:tracking-[0.25em]">
               / AGENT
             </span>
-          </a>
+          </Link>
         </div>
         <nav className="flex items-center gap-5 sm:gap-12">
           <a
@@ -143,8 +143,8 @@ export default function Home() {
             </h2>
 
             <p className="font-mono text-xs sm:text-[13px] tracking-wide text-neutral-600 leading-relaxed max-w-lg">
-              VXYAK helps you organize plans, remember what matters,
-              and take care of everyday tasks — all through a
+              VXYAK helps you capture thoughts, remember what matters,
+              and stay on top of your day — all through a
               simple conversation.
             </p>
 
@@ -152,9 +152,9 @@ export default function Home() {
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 font-mono text-[11px] sm:text-xs text-neutral-700 tracking-wider">
               <span>Less mental clutter</span>
               <span className="hidden sm:inline text-neutral-400">|</span>
-              <span>More clarity</span>
+              <span>Instant recall</span>
               <span className="hidden sm:inline text-neutral-400">|</span>
-              <span>Life in better balance</span>
+              <span>Life in quiet sync</span>
             </div>
 
             {/* Action Link */}
@@ -177,13 +177,14 @@ export default function Home() {
             </div>
 
             <div>
-              <p className="leading-relaxed">&ldquo;Help me plan my week.&rdquo;</p>
+              <p className="leading-relaxed">&ldquo;Where did I save that</p>
+              <p className="leading-relaxed">note from last week?&rdquo;</p>
               <div className="w-12 h-[1px] bg-neutral-400/80 mt-5" />
             </div>
 
             <div>
-              <p className="leading-relaxed">&ldquo;Take care of the little</p>
-              <p className="leading-relaxed">things.&rdquo;</p>
+              <p className="leading-relaxed">&ldquo;Hold onto this thought</p>
+              <p className="leading-relaxed">for me.&rdquo;</p>
             </div>
           </div>
         </div>
