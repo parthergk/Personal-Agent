@@ -285,8 +285,8 @@ Create `.env.local` inside the `landing-page/` directory:
 # Point to your running FastAPI backend
 NEXT_PUBLIC_API_URL=http://localhost:8000
 
-# WhatsApp Bot Phone Number (digits with country code, e.g. 918445260461)
-NEXT_PUBLIC_WHATSAPP_BOT_NUMBER=918445260461
+# WhatsApp Bot Phone Number (digits with country code, e.g. 17112345905)
+NEXT_PUBLIC_WHATSAPP_BOT_NUMBER=17112345905
 ```
 
 ---
