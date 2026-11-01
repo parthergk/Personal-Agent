@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 
@@ -18,9 +18,156 @@ const newsreader = Newsreader({
   style: ["normal", "italic"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vxyak.com";
+const siteDescription =
+  "Your world, in quiet sync. Organize plans, automate busywork, and live better with your personal AI agent. Focus on what matters.";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
-  title: "VXYAK — Personal AI Agent",
-  description: "Your world, in quiet sync. Think less about the busywork. Focus on what matters.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "VXYAK — Personal AI Agent",
+    template: "%s | VXYAK",
+  },
+  description: siteDescription,
+  keywords: [
+    "personal ai agent",
+    "ai personal assistant",
+    "task automation agent",
+    "whatsapp ai assistant",
+    "smart life organizer",
+    "productivity ai agent",
+    "ai daily planner",
+    "executive assistant ai",
+    "automated reminders",
+    "vxyak",
+    "vxyak agent",
+  ],
+  authors: [{ name: "VXYAK", url: siteUrl }],
+  creator: "VXYAK",
+  publisher: "VXYAK",
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  alternates: {
+    canonical: "/",
+  },
+
+  openGraph: {
+    title: "VXYAK — Personal AI Agent",
+    description: siteDescription,
+    url: "/",
+    siteName: "VXYAK",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/img/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "VXYAK — Personal AI Agent",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "VXYAK — Personal AI Agent",
+    description: siteDescription,
+    images: ["/img/logo.png"],
+  },
+
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "icon",
+        url: "/android-chrome-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        rel: "icon",
+        url: "/android-chrome-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+  },
+
+  manifest: "/site.webmanifest",
+};
+
+// Organization Schema
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "VXYAK",
+  url: siteUrl,
+  logo: `${siteUrl}/img/logo.png`,
+  image: `${siteUrl}/img/logo.png`,
+  description: siteDescription,
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "Customer Support",
+    availableLanguage: ["English"],
+  },
+};
+
+// Software Application Schema
+const softwareSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "VXYAK",
+  description: siteDescription,
+  url: siteUrl,
+  applicationCategory: "ProductivityApplication",
+  operatingSystem: "Web, WhatsApp",
+  logo: `${siteUrl}/img/logo.png`,
+  image: `${siteUrl}/img/logo.png`,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+    availability: "https://schema.org/InStock",
+  },
+  featureList: [
+    "Natural language conversation on WhatsApp",
+    "Automated personal reminders and task tracking",
+    "Weekly planning and daily organization",
+    "Calendar synchronization and schedule management",
+  ],
+};
+
+// WebSite Schema
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "VXYAK",
+  alternateName: "VXYAK Personal AI Agent",
+  url: siteUrl,
 };
 
 export default function RootLayout({
@@ -33,6 +180,28 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} h-full antialiased`}
     >
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(softwareSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteSchema),
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col font-mono text-[#171717]">{children}</body>
     </html>
   );

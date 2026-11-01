@@ -128,7 +128,7 @@ export default function Home() {
       </section>
 
       {/* ─── SECOND SECTION: "MORE TIME FOR WHAT MATTERS." (FOLD 2) ─── */}
-      <section className="relative w-full max-w-[1360px] mx-auto px-5 sm:px-12 py-16 sm:py-28">
+      <section id="about" className="relative w-full max-w-[1360px] mx-auto px-5 sm:px-12 py-16 sm:py-28">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-start">
           {/* Left Column Content */}
           <div className="lg:col-span-8 flex flex-col items-start gap-5 sm:gap-7">
