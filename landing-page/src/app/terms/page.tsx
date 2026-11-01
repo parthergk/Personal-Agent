@@ -157,7 +157,7 @@ export default function TermsPage() {
               09 // Contact
             </h2>
             <p>
-              For inquiries regarding these Terms, please reach out to <span className="text-neutral-900 font-medium">legal@vxyak.com</span>.
+              For inquiries regarding these Terms, please reach out to <span className="text-neutral-900 font-medium">legal@vxyak.in</span>.
             </p>
           </section>
         </div>

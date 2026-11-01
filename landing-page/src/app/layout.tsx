@@ -18,7 +18,7 @@ const newsreader = Newsreader({
   style: ["normal", "italic"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vxyak.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vxyak.in";
 const siteDescription =
   "Your world, in quiet sync. Organize plans, automate busywork, and live better with your personal AI agent. Focus on what matters.";
 

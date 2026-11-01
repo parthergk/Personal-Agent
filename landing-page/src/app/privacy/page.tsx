@@ -155,7 +155,7 @@ export default function PrivacyPage() {
               07 // Contact Us
             </h2>
             <p>
-              For privacy-related questions or data deletion requests, contact us at <span className="text-neutral-900 font-medium">privacy@vxyak.com</span>.
+              For privacy-related questions or data deletion requests, contact us at <span className="text-neutral-900 font-medium">privacy@vxyak.in</span>.
             </p>
           </section>
         </div>
