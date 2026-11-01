@@ -44,6 +44,7 @@ export const metadata: Metadata = {
     title: "About VXYAK – A Calmer Way to Remember & Organize",
     description:
       "Learn the mission behind VXYAK and how it brings calm, intelligent organization directly into WhatsApp.",
+    creator: "@parther_gk",
     images: [`${siteUrl}/og-image.png`],
   },
 };
@@ -82,6 +83,16 @@ const aboutPageSchema = {
     foundingDate: "2026",
     url: siteUrl,
     logo: `${siteUrl}/android-chrome-512x512.png`,
+    founder: {
+      "@type": "Person",
+      name: "Gaurav Kumar",
+      url: "https://parther.vercel.app",
+      sameAs: [
+        "https://www.linkedin.com/in/gaurav-kumar-b5a76626b/",
+        "https://x.com/parther_gk",
+        "https://github.com/parthergk",
+      ],
+    },
   },
 };
 

@@ -48,8 +48,8 @@ export const metadata: Metadata = {
     "vxyak",
     "vxyak agent",
   ],
-  authors: [{ name: "VXYAK", url: siteUrl }],
-  creator: "VXYAK",
+  authors: [{ name: "Gaurav Kumar", url: "https://parther.vercel.app" }],
+  creator: "Gaurav Kumar",
   publisher: "VXYAK",
 
   robots: {
@@ -90,6 +90,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "VXYAK — Personal AI Agent",
     description: siteDescription,
+    creator: "@parther_gk",
     images: ["/og-image.png"],
   },
 
@@ -130,6 +131,16 @@ const organizationSchema = {
   logo: `${siteUrl}/android-chrome-512x512.png`,
   image: `${siteUrl}/og-image.png`,
   description: siteDescription,
+  founder: {
+    "@type": "Person",
+    name: "Gaurav Kumar",
+    url: "https://parther.vercel.app",
+    sameAs: [
+      "https://www.linkedin.com/in/gaurav-kumar-b5a76626b/",
+      "https://x.com/parther_gk",
+      "https://github.com/parthergk",
+    ],
+  },
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "Customer Support",
@@ -149,6 +160,11 @@ const softwareSchema = {
   logo: `${siteUrl}/android-chrome-512x512.png`,
   image: `${siteUrl}/og-image.png`,
   screenshot: `${siteUrl}/og-image.png`,
+  author: {
+    "@type": "Person",
+    name: "Gaurav Kumar",
+    url: "https://parther.vercel.app",
+  },
   offers: {
     "@type": "Offer",
     price: "0",
