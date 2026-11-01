@@ -77,9 +77,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/img/logo.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
+        type: "image/png",
         alt: "VXYAK — Personal AI Agent",
       },
     ],
@@ -89,7 +90,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "VXYAK — Personal AI Agent",
     description: siteDescription,
-    images: ["/img/logo.png"],
+    images: ["/og-image.png"],
   },
 
   icons: {
@@ -126,8 +127,8 @@ const organizationSchema = {
   "@type": "Organization",
   name: "VXYAK",
   url: siteUrl,
-  logo: `${siteUrl}/img/logo.png`,
-  image: `${siteUrl}/img/logo.png`,
+  logo: `${siteUrl}/android-chrome-512x512.png`,
+  image: `${siteUrl}/og-image.png`,
   description: siteDescription,
   contactPoint: {
     "@type": "ContactPoint",
@@ -145,8 +146,9 @@ const softwareSchema = {
   url: siteUrl,
   applicationCategory: "ProductivityApplication",
   operatingSystem: "Web, WhatsApp",
-  logo: `${siteUrl}/img/logo.png`,
-  image: `${siteUrl}/img/logo.png`,
+  logo: `${siteUrl}/android-chrome-512x512.png`,
+  image: `${siteUrl}/og-image.png`,
+  screenshot: `${siteUrl}/og-image.png`,
   offers: {
     "@type": "Offer",
     price: "0",
