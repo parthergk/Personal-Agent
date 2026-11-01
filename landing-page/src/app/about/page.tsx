@@ -86,11 +86,13 @@ const aboutPageSchema = {
     founder: {
       "@type": "Person",
       name: "Gaurav Kumar",
+      alternateName: "Parther",
       url: "https://parther.vercel.app",
       sameAs: [
         "https://www.linkedin.com/in/gaurav-kumar-b5a76626b/",
         "https://x.com/parther_gk",
         "https://github.com/parthergk",
+        "https://www.instagram.com/parther.in",
       ],
     },
   },

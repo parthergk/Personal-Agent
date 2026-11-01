@@ -48,8 +48,8 @@ export const metadata: Metadata = {
     "vxyak",
     "vxyak agent",
   ],
-  authors: [{ name: "Gaurav Kumar", url: "https://parther.vercel.app" }],
-  creator: "Gaurav Kumar",
+  authors: [{ name: "Gaurav Kumar (Parther)", url: "https://parther.vercel.app" }],
+  creator: "Gaurav Kumar (Parther)",
   publisher: "VXYAK",
 
   robots: {
@@ -134,11 +134,13 @@ const organizationSchema = {
   founder: {
     "@type": "Person",
     name: "Gaurav Kumar",
+    alternateName: "Parther",
     url: "https://parther.vercel.app",
     sameAs: [
       "https://www.linkedin.com/in/gaurav-kumar-b5a76626b/",
       "https://x.com/parther_gk",
       "https://github.com/parthergk",
+      "https://www.instagram.com/parther.in",
     ],
   },
   contactPoint: {
@@ -163,6 +165,7 @@ const softwareSchema = {
   author: {
     "@type": "Person",
     name: "Gaurav Kumar",
+    alternateName: "Parther",
     url: "https://parther.vercel.app",
   },
   offers: {
