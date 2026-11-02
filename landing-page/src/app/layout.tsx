@@ -131,6 +131,10 @@ const organizationSchema = {
   logo: `${siteUrl}/android-chrome-512x512.png`,
   image: `${siteUrl}/og-image.png`,
   description: siteDescription,
+  sameAs: [
+    "https://www.instagram.com/vxyak.in/",
+    "https://www.linkedin.com/company/vxyak/",
+  ],
   founder: {
     "@type": "Person",
     name: "Gaurav Kumar",

@@ -287,3 +287,4 @@ Check [`public/site.webmanifest`](file:///d:/projects/Personal-Agent/landing-pag
    - Ensure image paths point to valid `/img/...` or `/...` locations.
 4. **Verification**:
    - Run `npm run build` or `next build` to verify all static routes, TypeScript types, and sitemaps render without error.
+

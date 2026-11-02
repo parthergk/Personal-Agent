@@ -514,7 +514,11 @@ export default function RegisterPage() {
       <footer className="w-full max-w-[1360px] mx-auto px-6 sm:px-12 mt-8 md:mt-6 font-mono text-[10px] sm:text-[11px] tracking-wider text-neutral-600">
         <div className="w-full pt-4 pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 border-t border-neutral-500/50">
           <div>&copy; 2026 Vxyak.</div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+            <a href="https://www.instagram.com/vxyak.in/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors">Instagram</a>
+            <span>|</span>
+            <a href="https://www.linkedin.com/company/vxyak/" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors">LinkedIn</a>
+            <span>|</span>
             <Link href="/privacy" className="hover:opacity-75 transition-opacity">
               Privacy Policy
             </Link>
