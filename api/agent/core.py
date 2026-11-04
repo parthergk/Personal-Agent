@@ -8,7 +8,7 @@ from .models import IncomingMessage, AgentResponse
 from .prompts import SYSTEM_PROMPT
 from .tools import TOOLS
 from .memory_store import save_memory, search_memory
-from .reminder import create_reminder
+from .reminder import create_reminder, update_reminder
 from .conversation_store import get_conversation_context, add_conversation_turn
 
 logger = logging.getLogger(__name__)
@@ -60,6 +60,12 @@ def _run_tool(name: str, args: dict, user_id: int = None) -> str:
         )
     elif name == "create_reminder":
         return create_reminder(
+            message=args.get("message"),
+            due_at=args.get("due_at"),
+            user_id=user_id
+        )
+    elif name == "update_reminder":
+        return update_reminder(
             message=args.get("message"),
             due_at=args.get("due_at"),
             user_id=user_id
@@ -132,12 +138,15 @@ async def process_message(message: IncomingMessage, user_id: int = None) -> str:
 
         # --- Tool calls (each offloaded to executor since they're blocking) ---
         for tool_call in assistant_msg.tool_calls:
+            print("tool call: ", tool_call)
             name = tool_call.function.name
             args = json.loads(tool_call.function.arguments)
+            print("tool call args: ", args)
 
             result = await loop.run_in_executor(
                 None, functools.partial(_run_tool, name, args, user_id)
             )
+            print("tool call result: ", result)
 
             messages.append({
                 "role": "tool",

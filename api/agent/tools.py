@@ -82,5 +82,26 @@ TOOLS = [
                 "required": ["message", "due_at"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_reminder",
+            "description": "Update or reschedule the time/date of an existing reminder for the user.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "The description, task name, or keywords identifying the existing reminder to be updated."
+                    },
+                    "due_at": {
+                        "type": "string",
+                        "description": "The new/updated date and time when the reminder should trigger, formatted as an ISO 8601 string (YYYY-MM-DDTHH:MM:SS), resolved relative to the current local time."
+                    }
+                },
+                "required": ["message", "due_at"]
+            }
+        }
     }
 ]
