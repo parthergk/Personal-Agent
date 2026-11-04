@@ -32,9 +32,13 @@ whatsapp/*auth*
 !landing-page/**
 !api/db/session.py
 
-
 qr.png
 
 uploads/
 
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+api/db/*.db
 reminders.db

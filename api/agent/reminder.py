@@ -81,8 +81,11 @@ def update_reminder(
 ) -> str:
     """
     Updates the due_at time for an existing reminder belonging to the user.
-    Takes message (used to identify/match the existing reminder), due_at (the updated reminder ISO-8601 time string),
-    timezone, and user_id.
+    Uses Option 3 (Smart SQL-backed resolution with ambiguity detection):
+    - Exact ID match
+    - Auto-selection if only 1 active reminder exists
+    - Keyword & token overlap scoring
+    - Ambiguity detection if multiple reminders match equally well
     """
     if not user_id:
         return "Error updating reminder: 'user_id' is required."
@@ -114,7 +117,7 @@ def update_reminder(
             dt = dt.astimezone(datetime.timezone.utc)
         due_at_utc = dt.replace(tzinfo=None)
 
-        # Fetch candidate reminders for this user (prioritizing pending)
+        # 1. Fetch pending reminders for this user (SQL as single source of truth)
         pending_reminders = (
             db.query(Reminder)
             .filter(Reminder.user_id == user_id, Reminder.status == "pending")
@@ -123,7 +126,6 @@ def update_reminder(
         )
 
         candidates = pending_reminders
-        print("Pending Reminders: ",candidates)
         if not candidates:
             # Fallback to all reminders for user if no pending reminders exist
             candidates = (
@@ -134,32 +136,31 @@ def update_reminder(
             )
 
         if not candidates:
-            return "No reminders found for user to update."
+            return "No reminders found for you to update."
 
         best_match = None
-        print("Reminder Text: ",reminder_text)
-        # Check if reminder_text is an explicit ID like '#3' or '3'
-        id_match = re.match(r"^#?(\d+)$", reminder_text.strip())
-        print("Id Match: ",id_match)
+
+        # Scenario A: User gave an explicit ID (e.g. '#3', 'reminder 3', or '3')
+        id_match = re.search(r"#?(\b\d+\b)", reminder_text.strip())
         if id_match:
             target_id = int(id_match.group(1))
             best_match = next((r for r in candidates if r.id == target_id), None)
-            print("Best Match: ",best_match)
             if not best_match:
                 best_match = db.query(Reminder).filter(Reminder.id == target_id, Reminder.user_id == user_id).first()
 
+        # Scenario B: User only has ONE reminder active (No ambiguity possible)
+        if not best_match and len(candidates) == 1:
+            best_match = candidates[0]
+
+        # Scenario C: Multiple reminders exist - match by keywords & detect ambiguity
         if not best_match:
-            # Score candidates based on text match
             stopwords = {"the", "a", "an", "to", "for", "of", "in", "on", "at", "my", "reminder", "time", "please", "tomorrow", "today"}
-            print("\nStopwords: ",stopwords)
             clean_query = reminder_text.strip().lower()
-            print("\nClean_query: ",clean_query)
             query_tokens = [w for w in re.findall(r"\w+", clean_query) if w not in stopwords]
-            print("\nQuery Tokens: ",query_tokens)
             if not query_tokens:
                 query_tokens = re.findall(r"\w+", clean_query)
 
-            best_score = 0
+            scored_candidates = []
             for rem in candidates:
                 rem_text = rem.message.strip().lower()
                 rem_tokens = [w for w in re.findall(r"\w+", rem_text) if w not in stopwords]
@@ -176,17 +177,33 @@ def update_reminder(
                     if common:
                         score = 40 + len(common) * 10
 
-                if score > best_score:
-                    best_score = score
-                    best_match = rem
+                if score > 0:
+                    scored_candidates.append((rem, score))
 
-            # If single candidate exists and no match score, default to the single candidate
-            if best_match is None and len(candidates) == 1:
-                best_match = candidates[0]
+            if not scored_candidates:
+                active_list = "\n".join([f"- #{r.id}: '{r.message}'" for r in candidates[:5]])
+                return (
+                    f"No reminder matching '{reminder_text}' was found. "
+                    f"Here are your current active reminders:\n{active_list}\n"
+                    f"Please tell me which one you'd like to update."
+                )
 
-        if not best_match:
-            return f"No matching reminder found for '{reminder_text}'."
+            # Sort by highest match score
+            scored_candidates.sort(key=lambda x: x[1], reverse=True)
+            top_score = scored_candidates[0][1]
+            top_matches = [rem for rem, score in scored_candidates if score == top_score]
 
+            # Scenario D: Ambiguity! Multiple reminders tied with the same top score
+            if len(top_matches) > 1:
+                options = "\n".join([f"- #{r.id}: '{r.message}'" for r in top_matches])
+                return (
+                    f"Multiple reminders match your request '{reminder_text}':\n{options}\n"
+                    f"Please clarify which reminder you want to reschedule (you can mention the title or #ID)."
+                )
+
+            best_match = scored_candidates[0][0]
+
+        # Update the target reminder
         best_match.due_at = due_at_utc
         best_match.timezone = tz_name
         best_match.status = "pending"

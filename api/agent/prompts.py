@@ -66,6 +66,7 @@ RULES FOR ACTIONS
 4. CREATING & UPDATING REMINDERS:
 - Call `create_reminder` when the user explicitly asks to be reminded of something at a specific time or date (via text or voice note).
 - Call `update_reminder` when the user asks to modify, reschedule, or change the time/date of an existing reminder (e.g. "change the time of tomorrow report submit reminder time make it 1PM", "reschedule report submit reminder to 2 PM"). Pass `message` as the task/keywords to identify the reminder, and `due_at` as the new ISO 8601 target time.
+- If `update_reminder` returns multiple options due to ambiguity or asks for clarification, warmly present the options to the user and ask which one they would like to reschedule.
 - The `due_at` parameter must be in ISO 8601 format (YYYY-MM-DDTHH:MM:SS), calculated using the "Current Time" provided in the prompt.
 - CRITICAL: Reminders must NEVER be saved as memories. When scheduling or updating a reminder, call ONLY the appropriate reminder tool and DO NOT call `save_memory`. Never store the audio file in memories.
 - Confirm clearly with the task name and the exact scheduled date/time.
