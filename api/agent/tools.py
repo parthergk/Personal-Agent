@@ -93,14 +93,18 @@ TOOLS = [
                 "properties": {
                     "message": {
                         "type": "string",
-                        "description": "The description, task name, or keywords identifying the existing reminder to be updated."
+                        "description": "The description, task name, or keywords identifying the existing reminder to be updated. If the reminder ID is known (e.g. '#4'), pass the ID here (e.g. '#4')."
                     },
                     "due_at": {
                         "type": "string",
                         "description": "The new/updated date and time when the reminder should trigger, formatted as an ISO 8601 string (YYYY-MM-DDTHH:MM:SS), resolved relative to the current local time."
+                    },
+                    "reminder_id": {
+                        "type": "integer",
+                        "description": "Optional: The exact ID of the reminder to update if already known from conversation history or previous clarification options (e.g. 4)."
                     }
                 },
-                "required": ["message", "due_at"]
+                "required": ["due_at"]
             }
         }
     }

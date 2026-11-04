@@ -78,11 +78,12 @@ def update_reminder(
     due_at: str = None,
     timezone: str = "Asia/Kolkata",
     user_id: int = None,
+    reminder_id: int = None,
 ) -> str:
     """
     Updates the due_at time for an existing reminder belonging to the user.
     Uses Option 3 (Smart SQL-backed resolution with ambiguity detection):
-    - Exact ID match
+    - Direct reminder_id (e.g. from disambiguation in second query) or #ID in message
     - Auto-selection if only 1 active reminder exists
     - Keyword & token overlap scoring
     - Ambiguity detection if multiple reminders match equally well
@@ -90,13 +91,13 @@ def update_reminder(
     if not user_id:
         return "Error updating reminder: 'user_id' is required."
 
-    reminder_text = message
-    if not reminder_text:
-        return "Error updating reminder: 'message' is required."
-
     time_str = due_at
     if not time_str:
         return "Error updating reminder: 'due_at' is required."
+
+    reminder_text = (message or "").strip()
+    if not reminder_text and not reminder_id:
+        return "Error updating reminder: either 'message' or 'reminder_id' is required."
 
     tz_name = timezone or "Asia/Kolkata"
 
@@ -140,13 +141,20 @@ def update_reminder(
 
         best_match = None
 
-        # Scenario A: User gave an explicit ID (e.g. '#3', 'reminder 3', or '3')
-        id_match = re.search(r"#?(\b\d+\b)", reminder_text.strip())
-        if id_match:
-            target_id = int(id_match.group(1))
-            best_match = next((r for r in candidates if r.id == target_id), None)
+        # Scenario A1: Explicit reminder_id passed directly (e.g. in second query after disambiguation)
+        if reminder_id:
+            best_match = next((r for r in candidates if r.id == reminder_id), None)
             if not best_match:
-                best_match = db.query(Reminder).filter(Reminder.id == target_id, Reminder.user_id == user_id).first()
+                best_match = db.query(Reminder).filter(Reminder.id == reminder_id, Reminder.user_id == user_id).first()
+
+        # Scenario A2: User/LLM gave an explicit ID in message (e.g. '#3', 'reminder 3', or '3')
+        if not best_match and reminder_text:
+            id_match = re.search(r"#?(\b\d+\b)", reminder_text)
+            if id_match:
+                target_id = int(id_match.group(1))
+                best_match = next((r for r in candidates if r.id == target_id), None)
+                if not best_match:
+                    best_match = db.query(Reminder).filter(Reminder.id == target_id, Reminder.user_id == user_id).first()
 
         # Scenario B: User only has ONE reminder active (No ambiguity possible)
         if not best_match and len(candidates) == 1:
@@ -155,7 +163,7 @@ def update_reminder(
         # Scenario C: Multiple reminders exist - match by keywords & detect ambiguity
         if not best_match:
             stopwords = {"the", "a", "an", "to", "for", "of", "in", "on", "at", "my", "reminder", "time", "please", "tomorrow", "today"}
-            clean_query = reminder_text.strip().lower()
+            clean_query = reminder_text.lower()
             query_tokens = [w for w in re.findall(r"\w+", clean_query) if w not in stopwords]
             if not query_tokens:
                 query_tokens = re.findall(r"\w+", clean_query)

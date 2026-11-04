@@ -68,7 +68,8 @@ def _run_tool(name: str, args: dict, user_id: int = None) -> str:
         return update_reminder(
             message=args.get("message"),
             due_at=args.get("due_at"),
-            user_id=user_id
+            user_id=user_id,
+            reminder_id=args.get("reminder_id")
         )
     else:
         return f"Unknown tool: {name}"
