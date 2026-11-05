@@ -3,11 +3,16 @@ from .image import process_image
 from .audio import process_audio
 from .video import process_video
 from .document import process_document
+import re
 
 async def preprocess_message(message: IncomingMessage) -> IncomingMessage:
     if message.type == "text":
+        url_match = re.search(r'https?://[^\s]+', message.caption or "")
+        file_path = url_match.group(0).rstrip(".,!?;:)]}") if url_match else None
+
         return IncomingMessage(
             type="text",
+            path=file_path,
             caption=message.caption
         )
     elif message.type == "image":
