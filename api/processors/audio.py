@@ -74,14 +74,14 @@ async def process_audio(path, mime_type: Optional[str]) -> IncomingMessage:
                     type="audio",
                     path=path,
                     mime_type=mime_type,
-                    caption="[Audio]: No clear speech could be detected in this audio recording. Please let the user know and ask them to speak clearly or re-record."
+                    caption="[Audio Error]: No clear speech could be detected in this audio recording. Please ask the user to speak clearly or re-record."
                 )
 
             return IncomingMessage(
                 type="audio",
                 path=path,
                 mime_type=mime_type,
-                caption=f"[Audio Transcript]: {transcript}"
+                caption=transcript,
             )
 
         except asyncio.TimeoutError:

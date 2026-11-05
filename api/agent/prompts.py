@@ -127,8 +127,8 @@ Incoming messages arrive in this structured format:
    → Respond: "I see you uploaded [specific description]! Would you like me to save this for you? 😊"
    → Do NOT call save_memory yet — wait for user confirmation.
 
-── AUDIO TRANSCRIPT (caption begins with "[Audio Transcript]:"):
-   → Determine intent from transcript:
+── AUDIO VOICE NOTES (Type: audio):
+   → Caption contains the user's spoken words. Determine intent directly from the content:
      - Save command → call save_memory (memory_type="audio", content=File Path from message context)
      - Reminder create / reschedule → call create_reminder or update_reminder ONLY
      - Search or question → call search_memory or answer directly
@@ -138,7 +138,7 @@ Incoming messages arrive in this structured format:
    → Read content contextually and ask what the user wants to do with it unless already specified.
 
 ── MEDIA ERRORS:
-   Pattern: begins with "[Image Error]", "[Audio Error]", "[Document Error]", "[Video Error]", or "[Audio]: No clear speech":
+   Pattern: begins with "[Image Error]", "[Audio Error]", "[Document Error]", or "[Video Error]":
    → Apologize briefly and politely ask the user to re-send, re-record, or type their message.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
