@@ -12,7 +12,7 @@ async def preprocess_message(message: IncomingMessage) -> IncomingMessage:
         
         return IncomingMessage(
             type="link" if file_path else "text",
-            file_path=file_path,
+            path=file_path,
             caption=message.caption
         )
     elif message.type == "image":

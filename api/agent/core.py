@@ -84,16 +84,14 @@ async def process_message(message: IncomingMessage, user_id: int = None) -> str:
     current_time = datetime.datetime.now().astimezone().isoformat(timespec='seconds')
 
     # Format incoming message context into a user prompt
-    if message.type == "text":
-        user_content = message.caption or ""
-    else:
-        parts = [f"Type: {message.type}"]
-        if message.path:
-            parts.append(f"File Path: {message.path}")
-        if message.caption:
-            parts.append(f"Caption: {message.caption}")
-        user_content = "\n".join(parts)
-        print("\n\nuser content", user_content)
+    parts = [f"Type: {message.type}"]
+    if message.path:
+        label = "URL" if message.type == "link" else "File Path"
+        parts.append(f"{label}: {message.path}")
+    if message.caption:
+        parts.append(f"Caption: {message.caption}")
+    user_content = "\n".join(parts)
+    print("\n\nUser content: ", user_content)
 
     user_content_with_time = f"Current Time: {current_time}\nUser Message: {user_content}"
 
@@ -116,7 +114,6 @@ async def process_message(message: IncomingMessage, user_id: int = None) -> str:
 
         assistant_msg = response.choices[0].message
         messages.append(assistant_msg)
-        print("\n\nAssistant Msg: ", assistant_msg)
 
         if not assistant_msg.tool_calls:
             assistant_text = assistant_msg.content or ""
@@ -138,15 +135,12 @@ async def process_message(message: IncomingMessage, user_id: int = None) -> str:
 
         # --- Tool calls (each offloaded to executor since they're blocking) ---
         for tool_call in assistant_msg.tool_calls:
-            print("tool call: ", tool_call)
             name = tool_call.function.name
             args = json.loads(tool_call.function.arguments)
-            print("tool call args: ", args)
 
             result = await loop.run_in_executor(
                 None, functools.partial(_run_tool, name, args, user_id)
             )
-            print("tool call result: ", result)
 
             messages.append({
                 "role": "tool",
@@ -159,7 +153,6 @@ async def process_message(message: IncomingMessage, user_id: int = None) -> str:
             None, functools.partial(_call_llm_parse, messages)
         )
         parsed_response = final_response.choices[0].message.parsed
-        print("\n\nfinal response", parsed_response)
 
         # Persist conversation turn into context memory
         if user_id and parsed_response:

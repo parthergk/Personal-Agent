@@ -3,18 +3,18 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "save_memory",
-            "description": "Store a user memory (link, image, audio, video, or document) in the database.",
+            "description": "Store a user memory (text, link, image, audio, video, or document) in the database.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "memory_type": {
                         "type": "string",
-                        "enum": ["link", "image", "audio", "video", "document"],
+                        "enum": ["text", "link", "image", "audio", "video", "document"],
                         "description": "The classification of the memory."
                     },
                     "content": {
                         "type": "string",
-                        "description": "For file types (image, audio, video, document), use the file path. For link type, use the URL."
+                        "description": "For file types (image, audio, video, document), use the file path. For link type, use the URL. For text type, use the text content."
                     },
                     "metadata": {
                         "type": "object",
@@ -54,7 +54,7 @@ TOOLS = [
                     },
                     "memory_type": {
                         "type": "string",
-                        "enum": ["link", "image", "audio", "video", "document"],
+                        "enum": ["text", "link", "image", "audio", "video", "document"],
                         "description": "Optional type parameter to restrict the search filter."
                     }
                 },
