@@ -44,7 +44,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "search_memory",
-            "description": "Query stored memories semantically.",
+            "description": "Query stored memories semantically (notes, links, photos, files). Do NOT use this tool for reminders.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -87,7 +87,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "update_reminder",
-            "description": "Update or reschedule the time/date of an existing reminder for the user.",
+            "description": "Update or reschedule the time/date of an existing reminder for the user. Searches active reminders internally by task keywords or ID—call this tool directly without searching beforehand.",
             "parameters": {
                 "type": "object",
                 "properties": {

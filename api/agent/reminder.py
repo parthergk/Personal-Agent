@@ -141,6 +141,7 @@ def update_reminder(
             )
 
             candidates = pending_reminders
+            print(f"\nPending reminders = {candidates}")
             if not candidates:
                 # Fallback to all reminders for user if no pending reminders exist
                 candidates = (
@@ -184,6 +185,8 @@ def update_reminder(
 
                     if score > 0:
                         scored_candidates.append((rem, score))
+                    print(f"\nReminder {rem.id} scored {score}")
+                    print(f"\nScored candidates = {scored_candidates}")
 
                 if not scored_candidates:
                     active_list = "\n".join([f"- #{r.id}: '{r.message}'" for r in candidates[:5]])

@@ -111,8 +111,8 @@ async def process_message(message: IncomingMessage, user_id: int = None) -> str:
         response = await loop.run_in_executor(
             None, functools.partial(_call_llm, messages)
         )
-
         assistant_msg = response.choices[0].message
+        print(f"\nResponse: {assistant_msg}")
         messages.append(assistant_msg)
 
         if not assistant_msg.tool_calls:
@@ -153,6 +153,7 @@ async def process_message(message: IncomingMessage, user_id: int = None) -> str:
             None, functools.partial(_call_llm_parse, messages)
         )
         parsed_response = final_response.choices[0].message.parsed
+        print(f"\nFinal response: {parsed_response}")
 
         # Persist conversation turn into context memory
         if user_id and parsed_response:
