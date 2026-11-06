@@ -117,7 +117,7 @@ def update_reminder(
         due_at_utc = dt.replace(tzinfo=None)
 
         best_match = None
-
+        print(f"\nReminder text = {reminder_text}")
         # Scenario A: Explicit ID provided in message (e.g. '#3', 'reminder 3', or '3')
         # Optimized: query by ID directly without fetching all pending reminders
         id_match = re.search(r"#?(\b\d+\b)", reminder_text)
@@ -190,6 +190,7 @@ def update_reminder(
 
                 if not scored_candidates:
                     active_list = "\n".join([f"- #{r.id}: '{r.message}'" for r in candidates[:5]])
+                    print(f"\nActive list = {active_list}")
                     return (
                         f"No reminder matching '{reminder_text}' was found. "
                         f"Here are your current active reminders:\n{active_list}\n"
@@ -204,9 +205,10 @@ def update_reminder(
                 # Scenario D: Ambiguity! Multiple reminders tied with the same top score
                 if len(top_matches) > 1:
                     options = "\n".join([f"- #{r.id}: '{r.message}'" for r in top_matches])
+                    print(f"\nOptions = {options}")
                     return (
                         f"Multiple reminders match your request '{reminder_text}':\n{options}\n"
-                        f"Please clarify which reminder you want to reschedule (you can mention the title or #ID)."
+                        f"Please clarify which reminder you want to reschedule."
                     )
 
                 best_match = scored_candidates[0][0]
